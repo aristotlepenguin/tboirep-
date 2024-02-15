@@ -45,7 +45,6 @@
 	<familiar name = "Cake" description = "happy rebirth!" gfx = "kak.png" />
 	<passive name="Rot" description="it stinks" gfx="rot.png" />
 	<familiar name="Frozen Flies" description="They give you the cold shoulder" gfx="frozen_flys.png" />
-aa
 <!-- Trinkets -->
 	<trinket name="micro amplifier" description="STOP!" gfx="microamplifier.png" />
 	<trinket name="burned clover" description="luck lasts" gfx="Clover.png" />
