@@ -1,0 +1,5 @@
+<sounds root="sfx/">
+	<sound name="vhs">
+		<sample weight="1" path="vhs.wav" />
+	</sound>
+</sounds>

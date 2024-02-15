@@ -1,0 +1,5 @@
+<achievements gfxroot="resources/gfx/ui/achievement/">
+
+	<!-- characters -->
+	<achievement name="Frosty" text='' gfx="achievementfrosty.png" />
+</achievements>
