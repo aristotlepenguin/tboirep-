@@ -2680,14 +2680,16 @@ end, tsunFlyVar)
 
 mod:AddCallback(ModCallbacks.MC_PRE_FAMILIAR_COLLISION, function(_, familiar, collider, low)
     if collider:IsVulnerableEnemy() then
-        if player:HasCollectible(CollectibleType.COLLECTIBLE_BFFS) then
+        local player = familiar.Player
+        if player and player:HasCollectible(CollectibleType.COLLECTIBLE_BFFS) then
             collider:TakeDamage(2, 0, EntityRef(familiar), 1)
         else
             collider:TakeDamage(1, 0, EntityRef(familiar), 1)
         end
     elseif collider:ToProjectile() ~= nil then
         local loopInt = 1
-        if player:HasCollectible(CollectibleType.COLLECTIBLE_BFFS) then
+        local player = familiar.Player
+        if player and player:HasCollectible(CollectibleType.COLLECTIBLE_BFFS) then
             loopInt = 2
         end
         for i=1, loopInt, 1 do
