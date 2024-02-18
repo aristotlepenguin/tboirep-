@@ -2810,6 +2810,10 @@ local frostRNG = RNG()
 local frameBetweenDebuffs = 150 -- 30 frames per second
 local damageDownPerDebuff = 0.75
 local lastFrame = 0
+
+local blueColor = Color(0.67, 1, 1, 1, 0, 0, 0)
+blueColor:SetColorize(1, 1, 2, 1)
+
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
     if player:GetPlayerType() == frostType then
         local frame = game:GetFrameCount()
@@ -2843,6 +2847,27 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
     end
 end)
 
+
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function(_) 
+    local hasIt = false
+    local frame = game:GetFrameCount()
+    if frame % 15 == 0 then
+        mod:AnyPlayerDo(function(player)
+            if player:GetPlayerType() == frostType then
+                hasIt = true
+            end
+            if hasIt then
+                local entities = Isaac.GetRoomEntities()
+                for i=1, #entities do
+                    local entity = entities[i]
+                    if entity:IsVulnerableEnemy() and entity:GetEntityFlags() & EntityFlag.FLAG_SLOW ~= EntityFlag.FLAG_SLOW then
+                        entity:AddSlowing(EntityRef(player), 9999, 0.8, blueColor)
+                    end
+                end
+            end
+        end)
+    end
+end)
 
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, player, cacheflag)
     local pdata = mod:repmGetPData(player)
