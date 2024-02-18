@@ -10,8 +10,8 @@ print("Thanks for playing the TBOI REP NEGATIVE [Commmunity Mod] - Currently run
 
 local Mod = RegisterMod("like start run", 1) --stupid thing but cool 
 function Mod:Anm()
-	local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
-	Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
+	--local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
+	--Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
 	local player = Isaac.GetPlayer(0)
 	local game = Game()
 	if game:GetFrameCount() == 1 then 
@@ -2724,6 +2724,130 @@ mod:AddCallback(ModCallbacks.MC_PRE_TEAR_COLLISION, function(_, tear, collider, 
     end
 end)
 
+----------------------------------------------------
+--SAVE MANAGER
+----------------------------------------------------
+
+function mod:AnyPlayerDo(foo)
+	for i = 0, game:GetNumPlayers() - 1 do
+		local player = Isaac.GetPlayer(i)
+		foo(player)
+	end
+end
+
+
+function mod:saveData()
+    local numPlayers = game:GetNumPlayers()
+    saveTable.PlayerData = {}
+
+    for i=0, numPlayers-1, 1 do
+        local player = Isaac.GetPlayer(i)
+
+        if not player:GetData().repmSaveData then
+            player:GetData().repmSaveData = {}
+        end
+
+        saveTable.PlayerData[tostring(player:GetCollectibleRNG(1):GetSeed())] = player:GetData().repmSaveData
+    end
+    local jsonString = json.encode(saveTable)
+    mod:SaveData(jsonString)
+end
+mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.saveData)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.saveData)
+
+function mod:loadData(isSave)
+    if mod:HasData() and isSave then
+        local numPlayers = game:GetNumPlayers()
+        saveTable = json.decode(mod:LoadData())
+        for i=0, numPlayers-1, 1 do
+            local player = Isaac.GetPlayer(i)
+            if saveTable.PlayerData[tostring(player:GetCollectibleRNG(1):GetSeed())] then
+                player:GetData().repmSaveData = saveTable.PlayerData[tostring(player:GetCollectibleRNG(1):GetSeed())]
+            end
+            player:AddCacheFlags(CacheFlag.CACHE_ALL)
+            player:EvaluateItems()
+        end
+    else
+        saveTable = {}
+        mod:AnyPlayerDo(function(player)
+        player:AddCacheFlags(CacheFlag.CACHE_ALL)
+        player:EvaluateItems()
+        end)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.loadData)
+
+function mod:repmGetPData(player)
+    local data = player:GetData()
+    if data.repmSaveData == nil then
+        data.repmSaveData = {}
+    end
+    return data.repmSaveData
+end
+
+
 
 
 --------------------------------------------------------------
+--FROSTY
+--------------------------------------------------------------
+
+local frostType = Isaac.GetPlayerTypeByName("Frosty", false)
+
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
+    mod:AnyPlayerDo(function(player)
+        if player:GetPlayerType() == frostType then
+            local pdata = mod:repmGetPData(player)
+            pdata.FrostDamageDebuff = 0
+            player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+            player:EvaluateItems()
+        end
+    end)
+end)
+
+local percentFreezePerSecond = 30 --chance to freeze every second
+local frostRNG = RNG()
+local frameBetweenDebuffs = 150 -- 30 frames per second
+local damageDownPerDebuff = 0.75
+local lastFrame = 0
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
+    if player:GetPlayerType() == frostType then
+        local frame = game:GetFrameCount()
+        if frame % 30 == 0  and frame ~= lastFrame then
+            lastFrame = frame
+            local room = game:GetRoom()
+            if room:GetAliveEnemiesCount() >= 1 and frostRNG:RandomInt(100) < percentFreezePerSecond then
+                local entities = Isaac.GetRoomEntities()
+                local offset = frostRNG:RandomInt(#entities)
+                for i=1, #entities do
+                    local offsetInt = ((i+offset) % (#entities))+1
+                    local entity_pos = entities[offsetInt]
+                    if entity_pos:IsVulnerableEnemy() and not entity_pos:IsBoss() then
+                        entity_pos:AddEntityFlags(EntityFlag.FLAG_ICE)
+                        entity_pos:TakeDamage(9999, 0, EntityRef(player), 1)
+                        break
+                    end
+                end
+            end
+            if frame % frameBetweenDebuffs == 0 then
+                local pdata = mod:repmGetPData(player)
+                if not room:IsClear() then
+                    pdata.FrostDamageDebuff = (pdata.FrostDamageDebuff or 0) + 1
+                elseif room:IsClear() then
+                    pdata.FrostDamageDebuff = 0
+                end
+                player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+                player:EvaluateItems()
+            end
+        end
+    end
+end)
+
+
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, player, cacheflag)
+    local pdata = mod:repmGetPData(player)
+    if cacheflag == CacheFlag.CACHE_DAMAGE then
+        local damageDebuff = (pdata.FrostDamageDebuff or 0)
+        player.Damage = player.Damage - (damageDebuff * damageDownPerDebuff)
+    end
+end)
