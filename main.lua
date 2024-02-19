@@ -2810,9 +2810,11 @@ local frostRNG = RNG()
 local frameBetweenDebuffs = 150 -- 30 frames per second
 local damageDownPerDebuff = 0.75
 local lastFrame = 0
+local minFrameFreeze = 30 -- 1 second
+local maxFrameFreeze = 900 -- 30 seconds
 
 local blueColor = Color(0.67, 1, 1, 1, 0, 0, 0)
-blueColor:SetColorize(1, 1, 2, 1)
+blueColor:SetColorize(1, 1, 3, 1)
 
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
     if player:GetPlayerType() == frostType then
@@ -2820,19 +2822,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
         if frame % 30 == 0  and frame ~= lastFrame then
             lastFrame = frame
             local room = game:GetRoom()
-            if room:GetAliveEnemiesCount() >= 1 and frostRNG:RandomInt(100) < percentFreezePerSecond then
-                local entities = Isaac.GetRoomEntities()
-                local offset = frostRNG:RandomInt(#entities)
-                for i=1, #entities do
-                    local offsetInt = ((i+offset) % (#entities))+1
-                    local entity_pos = entities[offsetInt]
-                    if entity_pos:IsVulnerableEnemy() and not entity_pos:IsBoss() then
-                        entity_pos:AddEntityFlags(EntityFlag.FLAG_ICE)
-                        entity_pos:TakeDamage(9999, 0, EntityRef(player), 1)
-                        break
-                    end
-                end
-            end
             if frame % frameBetweenDebuffs == 0 then
                 local pdata = mod:repmGetPData(player)
                 if not room:IsClear() then
@@ -2851,21 +2840,41 @@ end)
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function(_) 
     local hasIt = false
     local frame = game:GetFrameCount()
-    if frame % 15 == 0 then
-        mod:AnyPlayerDo(function(player)
-            if player:GetPlayerType() == frostType then
-                hasIt = true
-            end
-            if hasIt then
-                local entities = Isaac.GetRoomEntities()
-                for i=1, #entities do
-                    local entity = entities[i]
-                    if entity:IsVulnerableEnemy() and entity:GetEntityFlags() & EntityFlag.FLAG_SLOW ~= EntityFlag.FLAG_SLOW then
-                        entity:AddSlowing(EntityRef(player), 9999, 0.8, blueColor)
-                    end
+
+    if not startingFrame then
+        startingFrame = game:GetFrameCount()
+    end
+
+    mod:AnyPlayerDo(function(player)
+        if player:GetPlayerType() == frostType then
+            hasIt = true
+        end
+    end)
+    if hasIt and game:GetRoom():GetAliveEnemiesCount() >= 1 then
+        local entities = Isaac.GetRoomEntities()
+        for i=1, #entities do
+            local entity = entities[i]
+            if entity:IsVulnerableEnemy() then
+                if not entity:GetData().RepM_Frosty_FreezePoint then
+                    local num = frostRNG:RandomInt(maxFrameFreeze-minFrameFreeze)
+                    num = num + minFrameFreeze
+                    entity:GetData().RepM_Frosty_FreezePoint = game:GetFrameCount() + num
+                    entity:GetData().RepM_Frosty_StartPoint = game:GetFrameCount()
+                end
+                local freezepoint = entity:GetData().RepM_Frosty_FreezePoint
+                local startingFrame = entity:GetData().RepM_Frosty_StartPoint
+                if game:GetFrameCount() >= freezepoint then
+                    entity:AddEntityFlags(EntityFlag.FLAG_ICE)
+                    entity:TakeDamage(9999, 0, EntityRef(player), 1)
+                else
+                    local framesToFreeze = freezepoint - startingFrame --how long the enemy survives before freezing
+                    local progress = game:GetFrameCount() - startingFrame
+                    local progressAmt = progress/framesToFreeze
+                    local color = Color.Lerp(Color.Default, blueColor, progressAmt)
+                    entity:AddSlowing(EntityRef(player), 20, 0.8, color)
                 end
             end
-        end)
+        end
     end
 end)
 
