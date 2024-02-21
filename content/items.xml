@@ -42,9 +42,9 @@
 	<active name = "Bloddy negative" description = "minus? Stupid it`s a negative!"  gfx = "minmin.png" maxcharges="0" cache="all" />
 	<passive name="Lucky 7" description="fast and tasty" gfx="buter.png" />
 	<active name="Book of necromancer" description="the dead will serve!" gfx="NEGROMANTIA2.png" maxcharges="4" />
-	<familiar name = "Cake" description = "happy rebirth!" gfx = "kak.png" />
 	<passive name="Rot" description="it stinks" gfx="rot.png" />
 	<familiar name="Frozen Flies" description="They give you the cold shoulder" gfx="frozen_flys.png" />
+	<passive id="234" name="test" description="it oozes..." gfx="leaky bucket.png" />
 <!-- Trinkets -->
 	<trinket name="micro amplifier" description="STOP!" gfx="microamplifier.png" />
 	<trinket name="burned clover" description="luck lasts" gfx="Clover.png" />

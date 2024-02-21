@@ -8,6 +8,7 @@
 	<costume id="738" anm2path="TheRockHead.anm2" type="passive" priority="0" />
 	<costume id="832" anm2path="baran.anm2" type="passive" isFlying="true" skinColor="0" />
 	<costume anm2path="sim_hair.anm2" type="none" priority="100" />
+	<costume id="234" anm2path="mimi.anm2" type="passive" />
 </costumes>
 
 <costumes anm2root="gfx/characters/">

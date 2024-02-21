@@ -2372,7 +2372,6 @@ local Items = {
         ID = Isaac.GetItemIdByName("VHS cassette")
     }
 }
-SoundEffect.SOUND_VHS = Isaac.GetSoundIdByName("vhs")
 local Amount = 0
 function mod:onShaderParams(shaderName)
 if shaderName == 'RandomColors' then
@@ -2403,9 +2402,6 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
     end
   end
 end)
-mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION,function ()
-    SFXManager():Play(SoundEffect.SOUND_VHS,6)
-end,PickupVariant.PICKUP_COLLECTIBLE)
 
 local mod = RegisterMod("Noice", 1)
 local game = Game()
@@ -2606,47 +2602,6 @@ mod:AddCallback(ModCallbacks.MC_USE_CARD,function (_,_,Player)
     Data.TearRange = Data.TearRange - 25
     Player:AddCacheFlags(CacheFlag.CACHE_ALL,true)
 end,Isaac.GetCardIdByName("MinusShard"))
-
-local FlyHorf = {}
-FlyHorf.type = Isaac.GetEntityTypeByName("Fly Horf")
-FlyHorf.variant = Isaac.GetEntityVariantByName("Fly Horf")
-RepCM = {}
-RepCM.nullVector = Vector(0,0)
-
-function mod:FlyHorfShoot (npc)
-  if npc.Variant == FlyHorf.variant then
-    local sprite = npc:GetSprite()
-    if sprite:GetFrame() == 0 then
-        npc:ClearEntityFlags(EntityFlag.FLAG_NO_TARGET)
-      else
-        npc:AddEntityFlags(EntityFlag.FLAG_NO_TARGET)
-      end
-    end
-		local flies = Isaac.CountEntities(nil,18,0,0,true,true)
-		if flies < 3 then
-		  for i = 1,math.random(1,2) do
-			local fly = Isaac.Spawn(EntityType.ENTITY_ATTACKFLY,0,0,Isaac.GetFreeNearPosition(npc.Position,20),RepCM.nullVector,npc)
-			fly:GetData().IsFlyHorfFly = true
-			fly:GetData().canBecomeFlyder = false
-			fly:ClearEntityFlags(EntityFlag.FLAG_APPEAR)
-			fly.Velocity = ((npc:GetPlayerTarget().Position- npc.Position):Normalized()* 10):Rotated(math.random(-15,15))
-    end
-  end
-end
-mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.FlyHorfShoot, EntityType.ENTITY_HORF)
-
-function mod:FlyHorfNoProjectiles ()
-  local entities = Isaac.GetRoomEntities()
-  for i = 1,#entities do
-    if entities[i].Type == EntityType.ENTITY_PROJECTILE and entities[i].SpawnerType == EntityType.ENTITY_HORF and entities[i].SpawnerVariant == FlyHorf.variant then
-      entities[i]:Remove()
-    end
-  end
-end
-
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE,mod.FlyHorfNoProjectiles)
-
-
 
 --------------------------------------------------------------
 --Frozen Flies
