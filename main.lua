@@ -2840,3 +2840,24 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, player, cacheflag)
         player.Damage = player.Damage - (damageDebuff * damageDownPerDebuff)
     end
 end)
+
+mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
+    if REPENTOGON and shaderName == "REPMEmptyShader" then
+        local entities = Isaac.GetRoomEntities()
+        for i, npc in ipairs(entities) do
+            if npc:GetData().RepM_Frosty_FreezePoint ~= nil and npc:IsVulnerableEnemy() then
+                if not npc:GetData().RepM_Frosty_Sprite then
+                    npc:GetData().RepM_Frosty_Sprite = Sprite()
+                    npc:GetData().RepM_Frosty_Sprite:Load("gfx/chill_status.anm2",true)
+                    npc:GetData().RepM_Frosty_Sprite:Play("Idle")
+                end
+                local position = Isaac.WorldToRenderPosition(npc.Position+npc:GetNullOffset("OverlayEffect"))--
+                print(tostring(position.X) .. " " .. tostring(position.Y))
+                npc:GetData().RepM_Frosty_Sprite:Render(position)
+                npc:GetData().RepM_Frosty_Sprite:Update()
+                --print("ding!")
+            end
+        end
+    end
+end)
+--mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
