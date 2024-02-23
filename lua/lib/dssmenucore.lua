@@ -1,5 +1,21 @@
 return function(DSSModName, DSSCoreVersion, MenuProvider)
 
+    local utf8=require("utf8")  
+
+    local function utf8_Sub(str,x,y)
+        local x2,y2
+        x2=utf8.offset(str,x)
+        if y then
+            y2=utf8.offset(str,y+1)
+            if y2 then
+                y2=y2-1
+            end
+        end
+        return string.sub(str,x2,y2)
+    end
+
+
+
     local dssmod = RegisterMod(DSSModName, 1)
     local game = Game()
     local sfx = SFXManager()
@@ -68,6 +84,40 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
     mfdat['^'] = { 55, 3, 4, 5 };
     mfdat['<'] = { 56, 5, 7, 10 };
     mfdat['>'] = { 57, 5, 7, 10 };
+
+    mfdat['а'] = { 60, 4, 7, 11 };
+    mfdat['б'] = { 61, 5, 7, 11 };
+    mfdat['в'] = { 62, 4, 7, 11 };   
+    mfdat['г'] = { 63, 4, 8, 10 };
+    mfdat['д'] = { 64, 6, 9, 12 }; 
+    mfdat['е'] = { 65, 4, 7, 9 }; 
+    mfdat['ё'] = { 66, 4, 7, 9 };
+    mfdat['ж'] = { 67, 6, 9, 12 };
+    mfdat['з'] = { 68, 5, 8, 11 };
+    mfdat['и'] = { 70, 5, 8, 11 };
+    mfdat['й'] = { 71, 5, 8, 11 };
+    mfdat['к'] = { 72, 4, 6, 9 };
+    mfdat['л'] = { 73, 5, 7, 10 };
+    mfdat['м'] = { 74, 5, 8, 14 };
+    mfdat['н'] = { 75, 4, 7, 10 };
+    mfdat['о'] = { 76, 5, 9, 11 };
+    mfdat['п'] = { 77, 5, 8, 11 };
+    mfdat['р'] = { 78, 4, 6, 9 };
+    mfdat['с'] = { 79, 4, 7, 10 };
+    mfdat['т'] = { 80, 4, 7, 11 };
+    mfdat['у'] = { 81, 4, 7, 10 };
+    mfdat['ф'] = { 82, 5, 9, 12 };
+    mfdat['х'] = { 83, 4, 7, 11 };
+    mfdat['ц'] = { 84, 6, 9, 12 };
+    mfdat['ч'] = { 85, 4, 7, 10 };
+    mfdat['ш'] = { 86, 6, 10, 13 };
+    mfdat['щ'] = { 87, 6, 11, 15 };
+    mfdat['ъ'] = { 88, 5, 8, 11 };
+    mfdat['ы'] = { 89, 5, 8, 11 };
+    mfdat['ь'] = { 90, 4, 7, 8 };
+    mfdat['э'] = { 91, 5, 8, 11 };
+    mfdat['ю'] = { 92, 6, 10, 13 };
+    mfdat['я'] = { 93, 4, 7, 10 };
 
     dssmod.menusounds = {
         Pop2 = { Sound = Isaac.GetSoundIdByName("deadseascrolls_pop"), PitchVariance = .1 },
@@ -485,14 +535,14 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
         fsize = fsize + 1
         local length = 0
         local chr = {}
-        for i = 1, string.len(str) do
-            local sub = string.sub(str, i, i)
+        for i = 1, utf8.len(str) do
+            local sub = utf8_Sub(str, i, i)
             if not mfdat[sub] then
                 Isaac.ConsoleOutput("Invalid character " .. sub .. "!\n")
                 sub = '!'
             end
 
-            local len = mfdat[sub][fsize]
+            local len = mfdat[sub][fsize] 
             table.insert(chr, { sub, length })
             length = length + len + 1
         end
@@ -590,7 +640,6 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
                         fullstr = fullstr .. val.str
                     end
                 end
-
                 local length, chr = getMenuStringLength(fullstr, module.size)
                 module.len = length
                 module.chr = chr
@@ -716,7 +765,7 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
                         widestInRow = rowDrawing.width
                     end
 
-                    bselInRow = bselInRow or rowDrawing.bselinrow or rowDrawing.selected
+                    bselInRow = bselInRow or rowDrawing.bselinrow or rowDrawing.selectted
                 end
 
                 for _, rowDrawing in ipairs(rowDrawings) do
@@ -810,9 +859,10 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
         local root = tab.root or getScreenCenterPosition()
         local pos = tab.pos or Vector(0, 0)
         local dssmenu = DeadSeaScrollsMenu
-        tbl = tbl or dssmenu.OpenedMenu
         local uispr = tbl.MenuSprites or dssmenu.GetDefaultMenuSprites()
-        local font = uispr.Font
+	local rusfont = Sprite()
+	rusfont:Load("gfx/ui/deadseascrolls/menu_rfont.anm2", true)
+        local font = rusfont:IsLoaded() and rusfont or uispr.Font
         local menuspr = uispr.Symbols
         local menupal = dssmenu.GetPalette()
         local alpha = tab.alpha or 1
@@ -1020,7 +1070,7 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
                                 font.Color = Color(usecolor.R, usecolor.G, usecolor.B, alpha, 0, 0, 0)
                             end
                         end
-
+				
                         font:SetFrame(fname, mfdat[chr[1]][1])
                         font:Render(root + fpos, Vector(0, clipt), Vector(0, clipb))
                     end
@@ -1167,14 +1217,6 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
 
             allnosel = true
             for i, button in ipairs(buttons) do
-                if button.originalnosel == nil then
-                    if button.nosel == nil then
-                        button.originalnosel = false
-                    else
-                        button.originalnosel = button.nosel
-                    end
-                end
-
                 button.selected = false
                 if button.generate and itemswitched then
                     button.generate(button, item, tbl)
@@ -1189,7 +1231,7 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
                         button.nosel = true
                         button.forcenodisplay = true
                     elseif button.forcenodisplay then
-                        button.nosel = button.originalnosel
+                        button.nosel = nil
                         button.forcenodisplay = nil
                     end
                 end
@@ -1922,7 +1964,6 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
         end
     end
 
-    local eidHidden = false
     function dssmod.openMenu(tbl, openedFromNothing)
         if not openedFromNothing then
             tbl.DirectoryKey.SkipOpenAnimation = true
@@ -1933,13 +1974,6 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
         tbl.Exiting = nil
 
         dssmod.reloadButtons(tbl)
-
-        if EID then
-            if EID.isHidden then
-                eidHidden = true
-                EID.isHidden = true
-            end
-        end
     end
 
     function dssmod.closeMenu(tbl, fullClose, noAnimate)
@@ -1967,13 +2001,6 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
             end
 
             MenuProvider.SaveSaveData()
-        end
-
-        if eidHidden then
-            eidHidden = false
-            if EID then
-                EID.isHidden = false
-            end
         end
     end
 
@@ -2505,9 +2532,11 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
                 dssmenu.MenuSprites.Face:Load("gfx/ui/deadseascrolls/menu_face.anm2", true)
                 dssmenu.MenuSprites.Mask:Load("gfx/ui/deadseascrolls/menu_mask.anm2", true)
                 dssmenu.MenuSprites.Border:Load("gfx/ui/deadseascrolls/menu_border.anm2", true)
-                dssmenu.MenuSprites.Font:Load("gfx/ui/deadseascrolls/menu_font.anm2", true)
+                dssmenu.MenuSprites.Font:Load("gfx/ui/deadseascrolls/menu_rfont.anm2", true)
                 dssmenu.MenuSprites.Shadow:Load("gfx/ui/deadseascrolls/menu_shadow.anm2", true)
                 dssmenu.MenuSprites.Symbols:Load("gfx/ui/deadseascrolls/menu_symbols.anm2", true)
+            else
+                dssmenu.MenuSprites.Font:Load("gfx/ui/deadseascrolls/menu_rfont.anm2", true)
             end
 
             return dssmenu.MenuSprites
@@ -2558,10 +2587,9 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
         function dssmenu.IsMenuSafe()
             local roomHasDanger = false
             for _, entity in pairs(Isaac.GetRoomEntities()) do
-                if (entity:IsActiveEnemy() and not entity:HasEntityFlags(EntityFlag.FLAG_FRIENDLY) and not entity:GetData().DSSMenuSafe)
-                or entity.Type == EntityType.ENTITY_PROJECTILE and entity:ToProjectile().ProjectileFlags & ProjectileFlags.CANT_HIT_PLAYER == 0
-                or entity.Type == EntityType.ENTITY_BOMBDROP 
-                then
+                if (entity:IsActiveEnemy() and not entity:HasEntityFlags(EntityFlag.FLAG_FRIENDLY))
+                    or entity.Type == EntityType.ENTITY_PROJECTILE and entity:ToProjectile().ProjectileFlags & ProjectileFlags.CANT_HIT_PLAYER == 0
+                    or entity.Type == EntityType.ENTITY_BOMBDROP then
                     roomHasDanger = true
                     break
                 end
@@ -2577,13 +2605,12 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
         local dssdirectory = {
             main = {
                 title = 'dead sea scrolls',
-                buttons = {}, -- constructed in ReconstructMenus()
+                buttons = {
+                    { str = 'resume game', action = 'resume' },
+                    { str = 'menu settings', dest = 'menusettings' },
+                    dssmod.changelogsButton
+                },
                 tooltip = dssmod.menuOpenToolTip
-            },
-            othermenus = {
-                title = 'other mods',
-                buttons = {},
-                tooltip = dssmod.menuOpenToolTip,
             },
             menusettings = {
                 title = 'menu settings',
@@ -2842,52 +2869,26 @@ return function(DSSModName, DSSCoreVersion, MenuProvider)
             end
         end
 
-        function dssmenu.ReconstructMenus()
-            dssdirectory.main.buttons = {
-                { str = 'resume game', action = 'resume' },
-                { str = 'menu settings', dest = 'menusettings' },
-                dssmod.changelogsButton,
-            }
-
-            dssdirectory.othermenus.buttons = {}
-
-            local hasNonSubMenu
-            local menuCount = 0
-            local submenuCount = 0
-            for k, v in pairs(dssmenu.Menus) do
-                menuCount = menuCount + 1
-                if v.UseSubMenu then
-                    submenuCount = submenuCount + 1
-                elseif k ~= "Menu" then
-                    hasNonSubMenu = true
-                end
-            end
-
-            dssmenu.MenuCount = menuCount
-
-            for k, v in pairs(dssmenu.Menus) do
-                if k ~= "Menu" then
-                    local menubutton = { str = string.lower(k), action = "openmenu", menu = k }
-                    if v.UseSubMenu and submenuCount > 1 then
-                        table.insert(dssdirectory.othermenus.buttons, menubutton)
-                    else
-                        table.insert(dssdirectory.main.buttons, menubutton)
-                    end
-                end
-            end
-
-            if submenuCount > 1 and hasNonSubMenu then
-                table.insert(dssdirectory.main.buttons, { str = 'other mods', dest = 'othermenus'})
-            end
-        end
-
         function dssmenu.AddMenu(name, tbl)
             tbl.Name = name
+            if not dssmenu.Menus[name] then
+                dssmenu.MenuCount = (dssmenu.MenuCount or 0) + 1
+
+                if name ~= "Menu" then
+                    dssdirectory.main.buttons[#dssdirectory.main.buttons + 1] = { str = string.lower(name), action = "openmenu", menu = name }
+                end
+            end
+
             dssmenu.Menus[name] = tbl
-            dssmenu.ReconstructMenus()
         end
 
-        dssmenu.ReconstructMenus()
+        if dssmenu.Menus then
+            for k, v in pairs(dssmenu.Menus) do
+                if k ~= "Menu" then
+                    dssdirectory.main.buttons[#dssdirectory.main.buttons + 1] = { str = string.lower(k), action = "openmenu", menu = k }
+                end
+            end
+        end
 
         local openCalledRecently
         function dssmenu.OpenMenu(name)

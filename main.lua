@@ -4,21 +4,34 @@
     If anyone is looking for code, this is my first experience and I wrote every innovation through RegisterMod]]
 
 local mod = RegisterMod("tboirep-", 1.0)
+RepMMod = mod
 local json = require("json")
 local game = Game()
 local version = ": 0.7a" --added by me (pedro), for making updating version number easier
 print("Thanks for playing the TBOI REP NEGATIVE [Commmunity Mod] - Currently running version"..tostring(version))
+local saveTable = {}
 
 
-function mod:Anm()
-	--local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
-	--Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
-	local player = Isaac.GetPlayer(0)
-	if game:GetFrameCount() == 1 then 
-	    player:AnimateHappy()
-	end 
-end 
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.Anm)
+function mod.GetMenuSaveData()
+    if not mod.MenuData then
+        if mod:HasData() then
+            mod.MenuData = json.decode(mod:LoadData()).MenuData or {}
+        else
+            mod.MenuData = {}
+        end
+    end
+    return mod.MenuData
+end
+
+function mod.StoreSaveData()
+    saveTable.MenuData = mod.MenuData
+end
+
+
+
+local DSSInitializerFunction = include("lua.lib.DSSMenu")
+print(DSSInitializerFunction)
+DSSInitializerFunction(mod)
 
 local activeItems = {}
 
@@ -513,7 +526,7 @@ local BeastConsts = {
 local familiarRNG = RNG()
 local level
 local sfx = SFXManager()
-local saveTable = {}
+
 
 if AltarFix and not AltarFix.AllowedVariants then
     AltarFix.AllowedVariants = {}
@@ -798,7 +811,7 @@ function RNGTest:onCuriousHeart(_)
 	return true 
 end 
      
-mod:AddCallback(ModCallbacks.MC_USE_ITEM, RNGTest.onCuriousHeart, CollectibleType.COLLECTIBLE_CURIOUS_HEART, mod.Anm, Items.ID_Anm)
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, RNGTest.onCuriousHeart, CollectibleType.COLLECTIBLE_CURIOUS_HEART) -- , mod.Anm, Items.ID_Anm
 
 
 local PinkColor = Color(1,1,1,1)
@@ -2847,6 +2860,24 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
         end
     end
 end)
+
+
+
+function mod:Anm()
+    local player = Isaac.GetPlayer(0)
+    if REPENTOGON then
+        local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
+        
+        Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
+    end
+    if game:GetFrameCount() == 1 then 
+        player:AnimateHappy()
+    end 
+end 
+
+
+
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.Anm)
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------
 --EID, keep this at the bottom!!
