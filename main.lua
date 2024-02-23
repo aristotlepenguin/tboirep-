@@ -14,7 +14,6 @@ function mod:Anm()
 	--local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
 	--Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
 	local player = Isaac.GetPlayer(0)
-	local game = Game()
 	if game:GetFrameCount() == 1 then 
 	    player:AnimateHappy()
 	end 
@@ -165,13 +164,13 @@ mod.COLLECTIBLE_LOST_SHROOM = Isaac.GetItemIdByName("Lost shroom")
   
 function mod:onUpdate_LostShroom()
     --begin run
-    if Game():GetFrameCount() == 1 then
+    if game:GetFrameCount() == 1 then
         mod.HasLostShroom = false
 	end
  	
     -- shroom     
-	for playerNum = 1,  Game():GetNumPlayers() do 
-        local player = Game():GetPlayer(playerNum)
+	for playerNum = 1,  game:GetNumPlayers() do 
+        local player = game:GetPlayer(playerNum)
 		if player:HasCollectible(mod.COLLECTIBLE_LOST_SHROOM) then
 		    if not mod.HasLostShroom then -- pickup
 			    player:AddSoulHearts(2)
@@ -445,7 +444,7 @@ end)
 CollectibleType.BOOK_OF_TAILS = Isaac.GetItemIdByName("book of tails")
 
 function mod:onBookOfTails(_, rng)           -- сбив сделки при получении урона
-	local room = Game():GetRoom()
+	local room = game:GetRoom()
 	local player = Isaac.GetPlayer(0)
 
 	for i = 1, 8 do
@@ -458,7 +457,7 @@ function mod:onBookOfTails(_, rng)           -- сбив сделки при п�
 		end
 	end
 
-	Game():GetLevel():SetRedHeartDamage()                               
+	game:GetLevel():SetRedHeartDamage()                               
 	room:SetRedHeartDamage()
 	local gridIndex = room:GetGridIndex(player.Position)
 	room:SpawnGridEntity(gridIndex, GridEntityType.GRID_STAIRS, 0, 0, 0)
@@ -470,7 +469,7 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.onBookOfTails, CollectibleType.BOO
 function mod:onRoom()                                                         -- спавн ретро-сокровещницы 
 	local player = Isaac.GetPlayer(0)
 	if player:GetActiveItem() == CollectibleType.BOOK_OF_TAILS then
-		local room = Game():GetRoom()
+		local room = game:GetRoom()
 		if room:GetType() == RoomType.ROOM_DUNGEON then
 			for i = 1, room:GetGridSize() do
 				local gridEntity = room:GetGridEntity(i)
@@ -485,7 +484,7 @@ function mod:onRoom()                                                         --
 				end
 			end
 			if room:IsFirstVisit() then
-				local level = Game():GetLevel()
+				local level = game:GetLevel()
 				level:ChangeRoom(level:GetCurrentRoomIndex())
 			end
 		elseif room:GetType() == RoomType.ROOM_DEVIL or
@@ -514,7 +513,6 @@ local BeastConsts = {
 }
 
 local familiarRNG = RNG()
-local game = Game()
 local level
 local sfx = SFXManager()
 local saveTable = {}
@@ -611,7 +609,7 @@ mod:AddCallback(ModCallbacks.MC_FAMILIAR_UPDATE, function(_, fam)
     local currentRoom = game:GetRoom()
     if fam.FrameCount <= 1 then
         --i dont know how much of this actualyl gets initialzed i dont understand getdata at all ahhhh
-        familiarRNG:SetSeed(Game():GetSeeds():GetStartSeed(), 35)
+        familiarRNG:SetSeed(game:GetSeeds():GetStartSeed(), 35)
         data.State = "STATE_IDLE"
         data.FireDelay = 0 -- tracks time until shoot
         data.FlamesConsumed = 0
@@ -928,13 +926,13 @@ local function tearsUp(firedelay, val)  --Скорострельность вы�
 end
 
 function mod:TrinketNewRoom() --Эта функция вызывается после смены комнаты
-    for i=0, Game():GetNumPlayers()-1 do --Цикл, в котором проходимся по всем игрокам
+    for i=0, game:GetNumPlayers()-1 do --Цикл, в котором проходимся по всем игрокам
         local player = Isaac.GetPlayer(i)
         if player:HasTrinket(TrinketID) then
             local data = player:GetData()
             --local TrinkRNG = player:GetTrinketRNG(1)
             local TrinkRNG = RNG()  --RNG отвечает за неслучайную случайность
-            TrinkRNG:SetSeed(Game():GetLevel():GetCurrentRoomDesc().SpawnSeed+player.InitSeed, 35) --Сид, который отвечает за рандом
+            TrinkRNG:SetSeed(game:GetLevel():GetCurrentRoomDesc().SpawnSeed+player.InitSeed, 35) --Сид, который отвечает за рандом
             data.PeremenuyEto = 1 << TrinkRNG:RandomInt(6)
             player:AddCacheFlags(CacheFlag.CACHE_ALL)  --Добавляются флаги, чтобы указать какие статы перевычислятся
             player:EvaluateItems() --Эта функция вызывает перевычисление статов
@@ -971,7 +969,7 @@ function mod:CheckTrinketHold(player) --Эта функция вызываетс
     if player:HasTrinket(TrinketID) then
         if not data.PeremenuyEto then --Если есть брелок, но нет статов, то есть поднятие брелока
             local TrinkRNG = RNG()
-            TrinkRNG:SetSeed(Game():GetLevel():GetCurrentRoomDesc().SpawnSeed+player.InitSeed, 35)
+            TrinkRNG:SetSeed(game:GetLevel():GetCurrentRoomDesc().SpawnSeed+player.InitSeed, 35)
             data.PeremenuyEto = 1 << TrinkRNG:RandomInt(6)
             player:AddCacheFlags(data.PeremenuyEto)
             player:EvaluateItems()
@@ -1023,7 +1021,7 @@ end
 	local player = Isaac.GetPlayer(0)
 	local pos = player.Position
 	-- Beginning of run initialization
-	-- if Game():GetFrameCount() == 1 then 
+	-- if game:GetFrameCount() == 1 then 
 		-- Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, Isaac.GetItemIdByName("Leaky Faucet"), Vector(320,300), Vector(0,0), nil)
 		-- That super long line is how to spawn the item in the starting room. Comment it if you don't want it.
 	-- end
@@ -1043,7 +1041,7 @@ local config = Isaac.GetItemConfig()
 local burnedcloverID = Isaac.GetTrinketIdByName("burned clover")
 
 local function GetByQuality(min, max, pool, rnd)
-  local Itempool = Game():GetItemPool()
+  local Itempool = game:GetItemPool()
   for i=1,100 do
     local seed = rnd:RandomInt(1000000)+1
     local new = Itempool:GetCollectible(pool, true, seed)
@@ -1108,7 +1106,7 @@ end
 
 -- main functionality
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, flag, source, countdown)
-	for p = 0, Game():GetNumPlayers() - 1 do
+	for p = 0, game:GetNumPlayers() - 1 do
 		local player = Isaac.GetPlayer(p);
 		local multiplier = player:GetTrinketMultiplier(Trinket.PocketTechology);
 	
@@ -1230,10 +1228,10 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Cig)
 local MOREOPTIONS = Isaac.GetTrinketIdByName("MORE OPTIONS")
 local spawnPos = Vector(500,140)
 function mod:options_Wow_Room()
-  local room = Game():GetRoom()
+  local room = game:GetRoom()
   local hasTrink
   local HasSale
-  for i=0, Game():GetNumPlayers()-1 do
+  for i=0, game:GetNumPlayers()-1 do
     local player = Isaac.GetPlayer(i)
     if player:HasTrinket(MOREOPTIONS) then
       hasTrink = true
@@ -1244,10 +1242,10 @@ function mod:options_Wow_Room()
   end
 
   if hasTrink and room:IsFirstVisit() and room:GetType() == RoomType.ROOM_SHOP then
-    local Itempool = Game():GetItemPool()
+    local Itempool = game:GetItemPool()
     local pos = Isaac.GetFreeNearPosition(spawnPos, 40)
     local rng = RNG()
-    local seed = Game():GetLevel():GetCurrentRoomDesc().AwardSeed
+    local seed = game:GetLevel():GetCurrentRoomDesc().AwardSeed
     rng:SetSeed(seed, 35)
     local ItemId = GetByQuality(3, 4, Itempool:GetPoolForRoom(RoomType.ROOM_SHOP, seed), rng)
     if ItemId then
@@ -1794,8 +1792,8 @@ end)
 
 function mod:onUpdate_Rock()
 	--The rock
-	for playerNum = 1, Game():GetNumPlayers() do
-		local player = Game():GetPlayer(playerNum)
+	for playerNum = 1, game:GetNumPlayers() do
+		local player = game:GetPlayer(playerNum)
 		if player:HasCollectible(mod.COLLECTIBLE_THE_ROCK) then
 			for i, entity in pairs(Isaac.GetRoomEntities()) do
 				if entity:IsVulnerableEnemy() then
@@ -1857,8 +1855,8 @@ function mod:onUpdate_Rock()
 		end
 	end
 	-- Minus
-	for playerNum = 1, Game():GetNumPlayers() do
-		local player = Game():GetPlayer(playerNum)
+	for playerNum = 1, game:GetNumPlayers() do
+		local player = game:GetPlayer(playerNum)
 		if player:HasCollectible(mod.COLLECTIBLE_BEEG_MINUS) then
 			player:Kill()
 		end
@@ -1919,8 +1917,8 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.PixelatedCubeUse, mod.COLLECTIBLE_
 
 function mod:OnRoomClear(player)
 	--110V double charge part
-	for playerNum = 1, Game():GetNumPlayers() do
-		local player = Game():GetPlayer(playerNum)
+	for playerNum = 1, game:GetNumPlayers() do
+		local player = game:GetPlayer(playerNum)
 		if player:HasCollectible(mod.COLLECTIBLE_110V) then
 			local maxCharge = Isaac.GetItemConfig():GetCollectible(player:GetActiveItem(0)).MaxCharges
 			if player:GetActiveCharge(SLOT_PRIMARY) ~= maxCharge then
@@ -1934,8 +1932,8 @@ mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.OnRoomClear)
 
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, function()
 	--110V damage on using active part
-	for playerNum = 1, Game():GetNumPlayers() do
-		local player = Game():GetPlayer(playerNum)
+	for playerNum = 1, game:GetNumPlayers() do
+		local player = game:GetPlayer(playerNum)
 		if player:HasCollectible(mod.COLLECTIBLE_110V) then
 			local maxCharge = Isaac.GetItemConfig():GetCollectible(player:GetActiveItem(0)).MaxCharges
 			if maxCharge == 2 or maxCharge == 3 then
@@ -1955,12 +1953,12 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, function()
 end)
 
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function()
-	if Game():GetFrameCount() > DiliriumEyeLastActivateFrame + 1 then
-		for playerNum = 1, Game():GetNumPlayers() do
-			local player = Game():GetPlayer(playerNum)
+	if game:GetFrameCount() > DiliriumEyeLastActivateFrame + 1 then
+		for playerNum = 1, game:GetNumPlayers() do
+			local player = game:GetPlayer(playerNum)
 			if player:HasCollectible(mod.COLLECTIBLE_DILIRIUM_EYE) then
 				if math.random(1,5) == 3 then
-				DiliriumEyeLastActivateFrame = Game():GetFrameCount()
+				DiliriumEyeLastActivateFrame = game:GetFrameCount()
 					if player:GetFireDirection() == 0 then
 						for i = -2, 2 do
 							if i ~= 0 then								
@@ -2028,9 +2026,9 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_FlowTea)
 
 
 function mod:onUpdate_Otmichka()	
-	for playerNum = 1, Game():GetNumPlayers() do
-local player = Game():GetPlayer(playerNum)
-local spawnpos = Game():GetRoom():FindFreeTilePosition(Game():GetRoom():GetCenterPos(), 400)
+	for playerNum = 1, game:GetNumPlayers() do
+local player = game:GetPlayer(playerNum)
+local spawnpos = game:GetRoom():FindFreeTilePosition(game:GetRoom():GetCenterPos(), 400)
 mod.Collectible_HOLY_OTMICHKA = Isaac.GetItemIdByName("Holy master key") 
 
 if player:HasCollectible(mod.Collectible_HOLY_OTMICHKA) then
@@ -2048,7 +2046,6 @@ local Dead = Isaac.GetItemIdByName("I want to live")
 local Alive = Isaac.GetItemIdByName("I am alive")
 local Player = Isaac.GetPlayer(0)
 
-local game = Game()
 
 function mod:PassiveDead()
 		local Player = Isaac.GetPlayer(0)
@@ -2373,7 +2370,7 @@ local Items = {
 local Amount = 0
 function mod:onShaderParams(shaderName)
 if shaderName == 'RandomColors' then
-for i = 0, Game():GetNumPlayers() - 1 do
+for i = 0, game:GetNumPlayers() - 1 do
         Amount = Amount * 0.9 + (Isaac.GetPlayer(i):HasCollectible(Items.Mama.ID) and 0 or 0.1)
 end
         local params = { 
@@ -2402,7 +2399,7 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
 end)
 
 
-local game = Game()
+
 local music = MusicManager()
 
 CollectibleType.COLLECTIBLE_EXECUTIONER_HELMET = Isaac.GetItemIdByName("Executioner helmet")
@@ -2419,7 +2416,6 @@ end
 
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.onUpdate_ExHelmet)
 
-local game = Game()
 
 TrinketType.TRINKET_HAM = Isaac.GetTrinketIdByName("Hammer")
 
@@ -2450,7 +2446,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PROJECTILE_INIT ,Thumper.OnShooting)
 
 local ROt = Isaac.GetItemIdByName("Rot")
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM,function ()
-    for i = 1, Game():GetNumPlayers() do
+    for i = 1, game:GetNumPlayers() do
         ---@type EntityPlayer
         local Player = Isaac.GetPlayer(i-1)
         ---@type {GasesCountDown: number}
@@ -2464,7 +2460,7 @@ end)
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE,function (_,Player)
     ---@type {GasesCountDown: number}
     local Data = Player:GetData()
-    if Data.GasesCountDown ~= nil and Data.GasesCountDown > 0 and not Game():GetLevel():GetCurrentRoom():IsClear() then
+    if Data.GasesCountDown ~= nil and Data.GasesCountDown > 0 and not game:GetLevel():GetCurrentRoom():IsClear() then
         if Data.GasesCountDown % 30 == 0 then
             ---@type EntityEffect
             local Effect = Isaac.Spawn(EntityType.ENTITY_EFFECT,EffectVariant.SMOKE_CLOUD,0,Player.Position,Vector(0,0),Player):ToEffect()
@@ -2525,7 +2521,7 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG,function (_,Entity,_,DamageFlags
 end,EntityType.ENTITY_PLAYER)
 
 mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD,function ()
-    for i=1,Game():GetNumPlayers() do
+    for i=1,game:GetNumPlayers() do
         local Player = Isaac.GetPlayer(i-1)
         local Data = Player:GetData().RepMinus
         if (Data ~= nil and Data.MinusShard ~= nil and Data.MinusShard.Rooms > 0) then 
@@ -2542,7 +2538,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD,function ()
     end
 end)
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER,function ()
-    for i=1,Game():GetNumPlayers() do
+    for i=1,game:GetNumPlayers() do
         local Player = Isaac.GetPlayer(i-1)
         local Data = Player:GetData().RepMinus
         if Data ~= nil and (Data ~= nil and Data.MinusShard ~= nil) and Data.MinusShard.Sprite ~= nil then
