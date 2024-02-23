@@ -254,9 +254,7 @@ local Wiki = {
   }
 }
 
-if EID then
-    EID:addCollectible(mod.COLLECTIBLE_DONKEY_JAWBONE, DJdesc, "Donkey Jawbone")
-end
+
 
 if Encyclopedia then
 	Encyclopedia.AddItem({
@@ -1099,10 +1097,6 @@ local Trinket = {
 	DAMAGE = 0.5,
 }
 
--- eid compatibility
-if EID then
-	EID:addTrinket(Trinket.PocketTechology, "Deal 1.5x more damage to champion enemies and champion bosses");
-end
 
 -- main functionality
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, flag, source, countdown)
@@ -2854,3 +2848,18 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
     end
 end)
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
+----------------------------------------------------------
+--EID, keep this at the bottom!!
+----------------------------------------------------------
+
+if EID then
+    EID:addCollectible(mod.COLLECTIBLE_DONKEY_JAWBONE, DJdesc, "Donkey Jawbone", "en_us")
+    
+    EID:addTrinket(Trinket.PocketTechology, "Deal 1.5x more damage to champion enemies and champion bosses", "Pocket Techology", "en_us");
+
+
+end
+
+
+--example: 
+--EID:addCollectible(id of the item, "description of the item", "item name", "en_us(language)")
