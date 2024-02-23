@@ -2230,6 +2230,8 @@ end
  
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.onCache_Minus)
 
+
+
 function AddFlag(...)
     local ToReturn = 0
     for _,a in pairs({...}) do
@@ -2253,6 +2255,14 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT,function (_,Player)
         }
     }
 end)
+
+--if player:GetName() == "Minusaac" then
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
+    if player:GetName() == "Minusaac" then 
+      player:AddCollectible(StatsUpItem)
+    end
+  end)
+
 
 ---@param Player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_USE_ITEM,function (_,_,_,Player)
