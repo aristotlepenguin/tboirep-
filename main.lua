@@ -3,13 +3,14 @@
 --[[So mom’s programmers, who decided to get into the mod’s code, don’t be surprised at its strange design and how strangely it is written.
     If anyone is looking for code, this is my first experience and I wrote every innovation through RegisterMod]]
 
-Mod = RegisterMod("tboirep-", 1.0)
-
+local mod = RegisterMod("tboirep-", 1.0)
+local json = require("json")
+local game = Game()
 local version = ": 0.7a" --added by me (pedro), for making updating version number easier
 print("Thanks for playing the TBOI REP NEGATIVE [Commmunity Mod] - Currently running version"..tostring(version))
 
-local Mod = RegisterMod("like start run", 1) --stupid thing but cool 
-function Mod:Anm()
+
+function mod:Anm()
 	--local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
 	--Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
 	local player = Isaac.GetPlayer(0)
@@ -18,7 +19,7 @@ function Mod:Anm()
 	    player:AnimateHappy()
 	end 
 end 
-Mod:AddCallback(ModCallbacks.MC_POST_UPDATE, Mod.Anm)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.Anm)
 
 local activeItems = {}
 
@@ -28,33 +29,40 @@ ID_ALLStatsItem = Isaac.GetItemIdByName("Salami"),
 COLLECTIBLE_DONKEY_JAWBONE = Isaac.GetItemIdByName("Sim axe")
 }
 
-Mod.COLLECTIBLE_TECHL = Isaac.GetItemIdByName("PRObackstabber")
-Mod.LIGHTNING_EFFECT = Isaac.GetEntityTypeByName("Lightning")
-Mod.SFX_LIGHTNING = Isaac.GetSoundIdByName("Thunder")
+mod.COLLECTIBLE_TECHL = Isaac.GetItemIdByName("PRObackstabber")
 
 
-Mod.LIGHTNING_VARIANT = Isaac.GetEntityVariantByName("2643")
+mod.LIGHTNING_EFFECT = Isaac.GetEntityTypeByName("Lightning")
+
+
+mod.LIGHTNING_VARIANT = Isaac.GetEntityVariantByName("2643")
+
+
+mod.SFX_LIGHTNING = Isaac.GetSoundIdByName("Thunder")
+
+
+
 
 
 --When run begins
-function Mod:onGameStart(fromSave)
+function mod:onGameStart(fromSave)
 	if not fromSave then
 		if SpawnAtStart == true then
 			Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE,
-			Mod.COLLECTIBLE_TECHL, Vector(320,280), Vector(0,0), nil
+			mod.COLLECTIBLE_TECHL, Vector(320,280), Vector(0,0), nil
 			)
 		end
 		
 	end
 end
 
-Mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, Mod.onGameStart)
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.onGameStart)
 
 --When enemy gets hit by a tear
-function Mod:entityTakeDMG(tookDamage, damageAmount, damageFlag, damageSource, damageCountdownframes)
+function mod:entityTakeDMG(tookDamage, damageAmount, damageFlag, damageSource, damageCountdownframes)
 	local player = Isaac.GetPlayer(0)
 	local entity = tookDamage
-		if player:HasCollectible(Mod.COLLECTIBLE_TECHL)
+		if player:HasCollectible(mod.COLLECTIBLE_TECHL)
 		and damageSource.Type == EntityType.ENTITY_TEAR and entity:IsVulnerableEnemy() then
 		--Process begins
 			local data = entity:GetData()	
@@ -65,7 +73,7 @@ function Mod:entityTakeDMG(tookDamage, damageAmount, damageFlag, damageSource, d
 					if data.TechLHits == 5  then --At 5 shots
 					--local NearPosition = Isaac.GetFreeNearPosition(entity.Position, 50)
 					
-						Isaac.Spawn(EntityType.ENTITY_EFFECT, 2643, Mod.LIGHTNING_EFFECT,
+						Isaac.Spawn(EntityType.ENTITY_EFFECT, 2643, mod.LIGHTNING_EFFECT,
 						entity.Position, Vector(0,0), player) --Lightning spawns
 						
 						local FireEff = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.HOT_BOMB_FIRE, 0,
@@ -78,7 +86,7 @@ function Mod:entityTakeDMG(tookDamage, damageAmount, damageFlag, damageSource, d
 						Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.CROSS_POOF, 0,
 						entity.Position, Vector(0,0), player) --Blue circle effect
 						
-						sound:Play(Mod.SFX_LIGHTNING, 1, 0, false, 0.6) --Lightning Sound
+						sound:Play(mod.SFX_LIGHTNING, 1, 0, false, 0.6) --Lightning Sound
 						--Reset Hits counter
 						data.TechLHits = 0
 			
@@ -93,10 +101,10 @@ function Mod:entityTakeDMG(tookDamage, damageAmount, damageFlag, damageSource, d
 		
 end
 
-Mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, Mod.entityTakeDMG, EntityPartition.ENTITY_ENEMY)
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.entityTakeDMG, EntityPartition.ENTITY_ENEMY)
 
 
-function Mod:removeLightning(EntityNPC) --Remove the lightning
+function mod:removeLightning(EntityNPC) --Remove the lightning
 	local Lightning = EntityNPC
 	if Lightning:GetSprite():IsEventTriggered("End") then
 		Lightning:GetSprite():Remove()
@@ -104,32 +112,32 @@ function Mod:removeLightning(EntityNPC) --Remove the lightning
 	end
 end
 
-Mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, Mod.removeLightning, EntityType.ENTITY_EFFECT, 2643, Mod.LIGHTNING_EFFECT)
+mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.removeLightning, EntityType.ENTITY_EFFECT, 2643, mod.LIGHTNING_EFFECT)
 
-function Mod:fireNoCollide(EntityEffect)
+function mod:fireNoCollide(EntityEffect)
 	local player = Isaac.GetPlayer(0)
-	if player:HasCollectible(Mod.COLLECTIBLE_TECHL) then
+	if player:HasCollectible(mod.COLLECTIBLE_TECHL) then
 		Isaac.DebugString("BOMBfire")
 		--Don't collide fire with tears (probably does nothing)
 		EntityEffect.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
 	end
 end
-Mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, Mod.fireNoCollide, EffectVariant.HOT_BOMB_FIRE)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.fireNoCollide, EffectVariant.HOT_BOMB_FIRE)
 
 --Add glowing tears
-function Mod:glowingTears()
+function mod:glowingTears()
 	local player = Isaac.GetPlayer(0)
-	if player:HasCollectible(Mod.COLLECTIBLE_TECHL) then
+	if player:HasCollectible(mod.COLLECTIBLE_TECHL) then
 		game:GetSeeds():AddSeedEffect(SeedEffect.SEED_GLOWING_TEARS)
 	end
 end
 
-Mod:AddCallback(ModCallbacks.MC_POST_UPDATE, Mod.glowingTears)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.glowingTears)
 
 
 local bigRedButton = Isaac.GetItemIdByName("PROkamikadze")
 
-function Mod:RedButtonUse(item)
+function mod:RedButtonUse(item)
     local roomEntities = Isaac.GetRoomEntities()
     for _, entity in ipairs(roomEntities) do
         if entity:IsActiveEnemy() and entity:IsVulnerableEnemy() then
@@ -149,25 +157,25 @@ function Mod:RedButtonUse(item)
     }
 end
 
-Mod:AddCallback(ModCallbacks.MC_USE_ITEM, Mod.RedButtonUse, bigRedButton)
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.RedButtonUse, bigRedButton)
 
-local LostShroom = RegisterMod("Lostshroom", 1)
 
-LostShroom.COLLECTIBLE_LOST_SHROOM = Isaac.GetItemIdByName("Lost shroom")
+
+mod.COLLECTIBLE_LOST_SHROOM = Isaac.GetItemIdByName("Lost shroom")
   
-function LostShroom:onUpdate()
+function mod:onUpdate_LostShroom()
     --begin run
     if Game():GetFrameCount() == 1 then
-        LostShroom.HasLostShroom = false
+        mod.HasLostShroom = false
 	end
  	
     -- shroom     
 	for playerNum = 1,  Game():GetNumPlayers() do 
         local player = Game():GetPlayer(playerNum)
-		if player:HasCollectible(LostShroom.COLLECTIBLE_LOST_SHROOM) then
-		    if not LostShroom.HasLostShroom then -- pickup
+		if player:HasCollectible(mod.COLLECTIBLE_LOST_SHROOM) then
+		    if not mod.HasLostShroom then -- pickup
 			    player:AddSoulHearts(2)
-				LostShroom.HasLostShroom = true 
+				mod.HasLostShroom = true 
 		    end
 		
             for i, entity in pairs(Isaac.GetRoomEntities()) do
@@ -180,9 +188,9 @@ function LostShroom:onUpdate()
 
 end 
 
-LostShroom:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE,LostShroom.onUpdate)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.onUpdate_LostShroom)
 
-function Mod:updateCache(_player, cacheFlag)
+function mod:updateCache_AllStats(_player, cacheFlag)
     local player = Isaac.GetPlayer(0)
 	
 	if cacheFlag == CacheFlag.CACHE_DAMAGE then
@@ -212,12 +220,11 @@ function Mod:updateCache(_player, cacheFlag)
 	end	
 end
 
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.updateCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_AllStats)
 
-DonkeyJawboneMod = RegisterMod("Donkey Jawbone", 1)
-local mod = DonkeyJawboneMod
 
-CollectibleType.COLLECTIBLE_DONKEY_JAWBONE = Isaac.GetItemIdByName("Sim axe")
+
+mod.COLLECTIBLE_DONKEY_JAWBONE = Isaac.GetItemIdByName("Sim axe")
 
 local DJdesc = "Upon taking damage, this item causes you do a spin attack, dealing damage to nearby enemies and blocking projectiles for a short while"
 local Wiki = {
@@ -249,7 +256,7 @@ local Wiki = {
 }
 
 if EID then
-    EID:addCollectible(CollectibleType.COLLECTIBLE_DONKEY_JAWBONE, DJdesc, "Donkey Jawbone")
+    EID:addCollectible(mod.COLLECTIBLE_DONKEY_JAWBONE, DJdesc, "Donkey Jawbone")
 end
 
 if Encyclopedia then
@@ -371,12 +378,11 @@ end
 	SFXManager():Play(SoundEffect.SOUND_SWORD_SPIN)
 end
 
-local Mod = RegisterMod("NewSkin", 1) -- Change the part in quotes to match your mod name
 
 local SimType = Isaac.GetPlayerTypeByName("Sim", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
 local hairCostume = Isaac.GetCostumeIdByPath("gfx/characters/sim_hair.anm2") -- Exact path, with the "resources" folder as the root
 
-function Mod:GiveCostumesOnInit(player)
+function mod:GiveCostumesOnInit(player)
     if player:GetPlayerType() ~= SimType then
         return -- End the function early. The below code doesn't run, as long as the player isn't Gabriel.
     end
@@ -384,7 +390,7 @@ function Mod:GiveCostumesOnInit(player)
     player:AddNullCostume(hairCostume)
 end
 
-Mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, Mod.GiveCostumesOnInit)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.GiveCostumesOnInit)
 local Sim = { -- Change Sim everywhere to match your character. No spaces!
     DAMAGE = 1, -- These are all relative to Isaac's base stats.
     SPEED = 0.3,
@@ -427,18 +433,18 @@ function Sim:onCache(player, cacheFlag) -- I do mean everywhere!
     end
 end
  
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Sim.onCache)
-Mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Sim.onCache)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
   if player:GetPlayerType() == SimType then 
     player:SetPocketActiveItem(32, 2, true)
+    player:AddCollectible(Items.COLLECTIBLE_DONKEY_JAWBONE)
   end
 end)
 
-local Mod = RegisterMod("book of tails", 1)
 
 CollectibleType.BOOK_OF_TAILS = Isaac.GetItemIdByName("book of tails")
 
-function Mod:onBookOfTails(_, rng)           -- сбив сделки при получении урона
+function mod:onBookOfTails(_, rng)           -- сбив сделки при получении урона
 	local room = Game():GetRoom()
 	local player = Isaac.GetPlayer(0)
 
@@ -459,9 +465,9 @@ function Mod:onBookOfTails(_, rng)           -- сбив сделки при п�
 
 end
 
-Mod:AddCallback(ModCallbacks.MC_USE_ITEM, Mod.onBookOfTails, CollectibleType.BOOK_OF_TAILS)
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.onBookOfTails, CollectibleType.BOOK_OF_TAILS)
 
-function Mod:onRoom()                                                         -- спавн ретро-сокровещницы 
+function mod:onRoom()                                                         -- спавн ретро-сокровещницы 
 	local player = Isaac.GetPlayer(0)
 	if player:GetActiveItem() == CollectibleType.BOOK_OF_TAILS then
 		local room = Game():GetRoom()
@@ -490,10 +496,10 @@ function Mod:onRoom()                                                         --
 	end
 end
 
-Mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, Mod.onRoom)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.onRoom)
 
-local mod = RegisterMod("Little Beast", 1)
-local json = require("json")
+
+
 
 local BeastConsts = {
     COLLECTIBLE = Isaac.GetItemIdByName("Big Brim"),
@@ -762,8 +768,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_FAMILIAR_COLLISION, function(_, fam, col)
     end
 end, BeastConsts.VARIANT)
 
-local Mod = RegisterMod("Curious heart", 1)
-local game = Game()
+
 
 RNGTest = {}
 CollectibleType.COLLECTIBLE_CURIOUS_HEART = Isaac.GetItemIdByName("Curious Heart")
@@ -797,9 +802,8 @@ function RNGTest:onCuriousHeart(_)
 	return true 
 end 
      
-Mod:AddCallback(ModCallbacks.MC_USE_ITEM, RNGTest.onCuriousHeart, CollectibleType.COLLECTIBLE_CURIOUS_HEART, Mod.Anm, Items.ID_Anm)
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, RNGTest.onCuriousHeart, CollectibleType.COLLECTIBLE_CURIOUS_HEART, mod.Anm, Items.ID_Anm)
 
-local Mod = RegisterMod("milk", 1.0)
 
 local PinkColor = Color(1,1,1,1)
 PinkColor:SetColorize(5,0.5,2,1)
@@ -811,7 +815,7 @@ local Items = {
     }
 }
 
-function Mod:tearFire(t) 
+function mod:tearFire_StrawMilk(t) 
     local d = t:GetData()
     local player = t.SpawnerEntity and (t.SpawnerEntity:ToPlayer()
         or t.SpawnerEntity:ToFamiliar() and t.SpawnerEntity.Player)
@@ -823,9 +827,9 @@ function Mod:tearFire(t)
 		end	
     end 
 end 
-Mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, Mod.tearFire)
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.tearFire_StrawMilk)
 
-function Mod:TearDed(t)
+function mod:TearDed_StrawMilk(t)
     if t:GetData().IsStrawMilk then
         local p = Isaac.Spawn(1000,53,0,t.Position,Vector.Zero,t)
         local player = t.SpawnerEntity and t.SpawnerEntity:ToPlayer()
@@ -838,16 +842,15 @@ function Mod:TearDed(t)
         end
     end
 end
-Mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, Mod.TearDed, EntityType.ENTITY_TEAR)
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.TearDed_StrawMilk, EntityType.ENTITY_TEAR)
 
-function Mod:TearColor(player, cache)
+function mod:TearColor_StrawMilk(player, cache)
     if player:HasCollectible(Items.StrawMilk.ID) then
         player.TearColor = Items.StrawMilk.TEARCOLOR
     end
 end
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.TearColor, CacheFlag.CACHE_TEARCOLOR)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.TearColor_StrawMilk, CacheFlag.CACHE_TEARCOLOR)
 
-local Mod = RegisterMod("holy ", 1.0)
 
 Holyshell = {}
 CollectibleType.COLLECTIBLE_HOLY_SHELL = Isaac.GetItemIdByName("Holy shell")
@@ -897,7 +900,7 @@ function Holyshell:onUpdate(player)
 	end 
 end 
 
-Mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Holyshell.onUpdate)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, Holyshell.onUpdate)
 
 function Holyshell:onHolyshell1(_)
     local player = Isaac.GetPlayer(0)
@@ -905,7 +908,7 @@ function Holyshell:onHolyshell1(_)
 	player:AddCollectible(CollectibleType.COLLECTIBLE_UNHOLY_SHELL, 0, false)
 end 
 
-Mod:AddCallback(ModCallbacks.MC_USE_ITEM, Holyshell.onHolyshell1, CollectibleType.COLLECTIBLE_HOLY_SHELL)
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, Holyshell.onHolyshell1, CollectibleType.COLLECTIBLE_HOLY_SHELL)
 
 function Holyshell:onHolyshell2(_)
     local player = Isaac.GetPlayer(0)
@@ -913,9 +916,8 @@ function Holyshell:onHolyshell2(_)
 	player:AddCollectible(CollectibleType.COLLECTIBLE_UNHOLY_SHELL, 0, false)
 end 
 
-Mod:AddCallback(ModCallbacks.MC_USE_ITEM, Holyshell.onHolyshell2, CollectibleType.COLLECTIBLE_UNHOLY_SHELL)
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, Holyshell.onHolyshell2, CollectibleType.COLLECTIBLE_UNHOLY_SHELL)
 
-local Mod = RegisterMod("trin", 1)
 
 local TrinketID = Isaac.GetTrinketIdByName("micro amplifier")
 
@@ -982,7 +984,7 @@ function mod:CheckTrinketHold(player) --Эта функция вызываетс
 end
 mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.CheckTrinketHold)
 
-local LFaucet = RegisterMod("Leaky Bucket", 1)
+
 local LeakyBucket = Isaac.GetItemIdByName("Leaky Bucket")
 local player = Isaac.GetPlayer(0)
 
@@ -991,25 +993,20 @@ local function UpdateFaucet(player)
 	HasLeakyFaucet = player:HasCollectible(LeakyBucket)
 end
 
-function LFaucet:onPlayerInit(player)
-	UpdateFaucet(player)
-end
-
-LFaucet:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, LFaucet.onPlayerInit)
-
 -- Checks whether or not you have the item and deals w/ initialization
 local function UpdateFaucet(player)
 	HasLeakyFaucet = player:HasCollectible(LeakyBucket)
 end
 
-function LFaucet:onPlayerInit(player)
+function mod:onPlayerInit(player)
 	UpdateFaucet(player)
 end
 
-LFaucet:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, LFaucet.onPlayerInit)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT,  mod.onPlayerInit)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT,  mod.onPlayerInit)
 
 -- Gives the Tears buff
-function LFaucet:cacheUpdate(player, cacheFlag)
+function mod:cacheUpdate(player, cacheFlag)
 	if cacheFlag == CacheFlag.CACHE_DAMAGE then
 		if player:HasCollectible(LeakyBucket) then
 			if player.MaxFireDelay >= 7 then
@@ -1022,7 +1019,7 @@ function LFaucet:cacheUpdate(player, cacheFlag)
 end
 
 -- Randomly spawns Holy Water creep
- function  LFaucet:onUpdate(player)
+ function  mod:onUpdate_LeakyFaucet(player)
 	local player = Isaac.GetPlayer(0)
 	local pos = player.Position
 	-- Beginning of run initialization
@@ -1038,8 +1035,8 @@ end
 	end
  end
 
-LFaucet:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, LFaucet.cacheUpdate)
-LFaucet:AddCallback(ModCallbacks.MC_POST_UPDATE, LFaucet.onUpdate)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.cacheUpdate)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.onUpdate_LeakyFaucet)
 
 local config = Isaac.GetItemConfig()
 
@@ -1097,8 +1094,6 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
   end
 end)
 
--- register trinket mod
-local Mod = RegisterMod("Pocket Techology", 1);
 
 -- get ids and stats
 local Trinket = {
@@ -1112,7 +1107,7 @@ if EID then
 end
 
 -- main functionality
-Mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, flag, source, countdown)
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, flag, source, countdown)
 	for p = 0, Game():GetNumPlayers() - 1 do
 		local player = Isaac.GetPlayer(p);
 		local multiplier = player:GetTrinketMultiplier(Trinket.PocketTechology);
@@ -1146,7 +1141,6 @@ Mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, entity, amount, fla
 	end
 end);
 
-local Mod = RegisterMod("coc", 1)
 
 local CokaColaItem = Isaac.GetItemIdByName("Cokacola") --Проверь имя предмета
 TearVariant.COKACOLA = Isaac.GetEntityVariantByName("Cokacola")
@@ -1157,15 +1151,15 @@ local Cokafart = {
   FARTDELAY = 5,
 }
 
-function Mod:TearUpdate(tear)
+function mod:TearUpdate(tear)
   local data = tear:GetData()
   if data.IsCocaColaTear12 then
     data.IsCocaColaTear12.FartDelay = data.IsCocaColaTear12.FartDelay - 1
   end
 end
-Mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, Mod.TearUpdate)
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.TearUpdate)
 
-function Mod:TearFire(tear)
+function mod:TearFire(tear)
   local data = tear:GetData()
   local player = tear.SpawnerEntity and (tear.SpawnerEntity:ToPlayer()
     or tear.SpawnerEntity:ToFamiliar() and tear.SpawnerEntity.Player)
@@ -1177,9 +1171,9 @@ function Mod:TearFire(tear)
     }
    end
 end 
-Mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, Mod.TearFire)
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.TearFire)
 
-function Mod:TearCollision(tear)
+function mod:TearCollision(tear)
   local data = tear:GetData()
   if data.IsCocaColaTear12 and data.IsCocaColaTear12.player:Exists() then
     local Gram = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.CREEP_BROWN, 0,
@@ -1192,9 +1186,9 @@ function Mod:TearCollision(tear)
     Gram.Color = Color(0.5,0.05,0,1,0,0,0)
   end
 end
-Mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, Mod.TearCollision,2)
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.TearCollision,2)
 
-function Mod:onDamage(entity, collider)
+function mod:onDamage(entity, collider)
   local data = entity:GetData()
   if data.IsCocaColaTear12 or  entity.Type == EntityType.ENTITY_TEAR
     and entity.Variant == TearVariant.COKACOLA then
@@ -1205,9 +1199,9 @@ function Mod:onDamage(entity, collider)
     end
 end
 
-Mod:AddPriorityCallback(ModCallbacks.MC_PRE_TEAR_COLLISION, 100, Mod.onDamage)
+mod:AddPriorityCallback(ModCallbacks.MC_PRE_TEAR_COLLISION, 100, mod.onDamage)
 
-function Mod:onCache(player, flag)
+function mod:onCache_Coka(player, flag)
   if flag == CacheFlag.CACHE_RANGE then
     if player:HasCollectible(CokaColaItem) then
           player.TearFallingSpeed = player.TearFallingSpeed - 3
@@ -1215,14 +1209,13 @@ function Mod:onCache(player, flag)
     end
 end
 
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.onCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.onCache_Coka)
 
-local Mod = RegisterMod("KOSAK", 1)
 
 local Cigarette = Isaac.GetItemIdByName("cigarette")
 local player = Isaac.GetPlayer(0)
 
-function Mod:updateCache(_player, cacheFlag)
+function mod:updateCache_Cig(_player, cacheFlag)
     local player = Isaac.GetPlayer(0)
 	
 	if cacheFlag == CacheFlag.CACHE_DAMAGE then
@@ -1232,7 +1225,7 @@ function Mod:updateCache(_player, cacheFlag)
 	end	
 end
 
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.updateCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Cig)
 
 local MOREOPTIONS = Isaac.GetTrinketIdByName("MORE OPTIONS")
 local spawnPos = Vector(500,140)
@@ -1277,11 +1270,10 @@ function mod:options_Wow_Room()
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.options_Wow_Room)
 
-local Mod = RegisterMod("banan", 1)
 
 local Bananamilk = Isaac.GetItemIdByName("banana milk")
 
-function Mod:updateCache(_player, cacheFlag)
+function mod:updateCache_Banana(_player, cacheFlag)
     local player = Isaac.GetPlayer(0)
 	
 	if cacheFlag == CacheFlag.CACHE_FIREDELAY then
@@ -1296,9 +1288,8 @@ function Mod:updateCache(_player, cacheFlag)
 	end	
 end
 
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.updateCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Banana)
 
-local Mod = RegisterMod("banamilk", 1.0)
 
 local YellowColor = Color(1,1,1,1)
 YellowColor:SetColorize(0.9,0.9,0,2)
@@ -1310,7 +1301,7 @@ local Items = {
     }
 }
 
-function Mod:TearDed(t)
+function mod:TearDed_Banana(t)
     if t:GetData().IsBananaMilk then
         local p = Isaac.Spawn(1000,53,0,t.Position,Vector.Zero,t)
         local player = t.SpawnerEntity and t.SpawnerEntity:ToPlayer()
@@ -1323,23 +1314,23 @@ function Mod:TearDed(t)
         end
     end
 end
-Mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, Mod.TearDed, EntityType.ENTITY_TEAR)
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_REMOVE, mod.TearDed_Banana, EntityType.ENTITY_TEAR)
 
-function Mod:TearColor(player, cache)
+function mod:TearColor(player, cache)
     if player:HasCollectible(Items.BananaMilk.ID) then
         player.TearColor = Items.BananaMilk.TEARCOLOR
     end
 end
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.TearColor, CacheFlag.CACHE_TEARCOLOR)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.TearColor, CacheFlag.CACHE_TEARCOLOR)
 
-local Mod = RegisterMod("MONSTERS", 1)
+
 
 EntityType.ENTITY_DICEGARPER = Isaac.GetEntityTypeByName("Dice Garper")
 DiceGarper = {
     SPEED = 0.5,
 	RANGE = 200
 }
-function Mod:onDiceGarper(entity)
+function mod:onDiceGarper(entity)
     local sprite = entity:GetSprite()
 	sprite:PlayOverlay("Head", false)
 	entity:AnimWalkFrame("WalkHori", "WalkVert", 0.1)
@@ -1369,14 +1360,14 @@ function Mod:onDiceGarper(entity)
     end 
 end 
 
-Mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, Mod.onDiceGarper, EntityType.ENTITY_DICEGARPER)
+mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.onDiceGarper, EntityType.ENTITY_DICEGARPER)
 
 EntityType.ENTITY_BROKEDICEGARPER = Isaac.GetEntityTypeByName("Broken Dice Garper")
 BrokDiceGarper = {
     SPEED = 1.0,
 	RANGE = 200
 }
-function Mod:onBrokDiceGarper(entity)
+function mod:onBrokDiceGarper(entity)
     local sprite = entity:GetSprite()
 	sprite:PlayOverlay("Head", false)
 	entity:AnimWalkFrame("WalkHori", "WalkVert", 0.1)
@@ -1406,9 +1397,8 @@ function Mod:onBrokDiceGarper(entity)
     end 
 end 
 
-Mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, Mod.onBrokDiceGarper, EntityType.ENTITY_BROKEDICEGARPER)
+mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.onBrokDiceGarper, EntityType.ENTITY_BROKEDICEGARPER)
 
-local Mod = RegisterMod("Delirious tech", 1.0)
 
 local Items = {
     DilTeh = {
@@ -1416,7 +1406,7 @@ local Items = {
     }
 }
 
-function Mod:LazerColor(player, cacheFlag)
+function mod:LazerColor(player, cacheFlag)
     if cacheFlag == CacheFlag.CACHE_TEARCOLOR then
         if player:HasCollectible(Items.DilTeh.ID) then 
            player.LaserColor = Color(0,0,0,1,215,95,25) 
@@ -1424,7 +1414,7 @@ function Mod:LazerColor(player, cacheFlag)
     end 
 end
 
-function Mod:tearFire(t) 
+function mod:tearFire_Diltech(t) 
     local d = t:GetData()
     local player = t.SpawnerEntity and (t.SpawnerEntity:ToPlayer()
         or t.SpawnerEntity:ToFamiliar() and t.SpawnerEntity.Player)
@@ -1721,32 +1711,32 @@ function Mod:tearFire(t)
 		end
 	end	
 end
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.LazerColor, CacheFlag.CACHE_TEARCOLOR)
-Mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, Mod.tearFire)
-Mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.LazerColor, CacheFlag.CACHE_TEARCOLOR)
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.tearFire_Diltech)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
   for i=0, game:GetNumPlayers() do
     local p = Isaac.GetPlayer(i)
     p:GetData().TBOIREP_Minus_DilliriumTech = p:GetCollectibleRNG(Items.DilTeh.ID):RandomInt(2)+1
   end
 end)
 
-local Mod = RegisterMod("vac", 1.0)
+
 local Items = {
     Vacum = {
         ID = Isaac.GetItemIdByName("vacuum"),
     }
 }
 
-function Mod:tearUpdate(tear)
+function mod:tearUpdate(tear)
     if tear:GetData().IsVacum and tear:HasTearFlags(TearFlags.TEAR_BOOMERANG) and tear.SpawnerEntity then
         local pow = tear.SpawnerEntity.Position:Distance(tear.Position)/10
         local newvel = (tear.SpawnerEntity.Position-tear.Position):Resized(pow)
         tear.Velocity = tear.Velocity * 0.9 + newvel * 0.1
     end
 end
-Mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, Mod.tearUpdate)
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.tearUpdate)
 
-function Mod:tearFire(t) 
+function mod:tearFire(t) 
     local d = t:GetData()
     local player = t.SpawnerEntity and (t.SpawnerEntity:ToPlayer()
         or t.SpawnerEntity:ToFamiliar() and t.SpawnerEntity.Player)
@@ -1759,9 +1749,9 @@ function Mod:tearFire(t)
         end    
     end 
 end 
-Mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, Mod.tearFire)
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.tearFire)
 
-function Mod:updateCache(_player, cacheFlag)
+function mod:updateCache_Vacuum(_player, cacheFlag)
     local player = Isaac.GetPlayer(0) 
     
     if cacheFlag == CacheFlag.CACHE_FIREDELAY then
@@ -1775,21 +1765,21 @@ function Mod:updateCache(_player, cacheFlag)
         end        
     end
 end    
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.updateCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Vacuum)
 
-local MyOwnMod = RegisterMod("MyOwnMod", 1)
 
-MyOwnMod.COLLECTIBLE_BEEG_MINUS = Isaac.GetItemIdByName("Minus")
-MyOwnMod.COLLECTIBLE_PINK_STRAW = Isaac.GetItemIdByName("Pink straw")
-MyOwnMod.COLLECTIBLE_PIXELATED_CUBE = Isaac.GetItemIdByName("Pixelated cube")
-MyOwnMod.COLLECTIBLE_110V = Isaac.GetItemIdByName("110V")
-MyOwnMod.COLLECTIBLE_DILIRIUM_EYE = Isaac.GetItemIdByName("Dilirium eye")
-MyOwnMod.COLLECTIBLE_THE_ROCK = Isaac.GetItemIdByName("The rock")
+
+mod.COLLECTIBLE_BEEG_MINUS = Isaac.GetItemIdByName("Minus")
+mod.COLLECTIBLE_PINK_STRAW = Isaac.GetItemIdByName("Pink straw")
+mod.COLLECTIBLE_PIXELATED_CUBE = Isaac.GetItemIdByName("Pixelated cube")
+mod.COLLECTIBLE_110V = Isaac.GetItemIdByName("110V")
+mod.COLLECTIBLE_DILIRIUM_EYE = Isaac.GetItemIdByName("Dilirium eye")
+mod.COLLECTIBLE_THE_ROCK = Isaac.GetItemIdByName("The rock")
 local DiliriumEyeLastActivateFrame = 0
 
 local player = Isaac.GetPlayer(0)
 local PixelatedCubeBabiesList = {}
-MyOwnMod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
 	-- babies list for pixelated cube
   local config = Isaac.GetItemConfig()
   if #PixelatedCubeBabiesList == 0 then
@@ -1802,11 +1792,11 @@ MyOwnMod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, function()
   end
 end) 
 
-function MyOwnMod:onUpdate()
+function mod:onUpdate_Rock()
 	--The rock
 	for playerNum = 1, Game():GetNumPlayers() do
 		local player = Game():GetPlayer(playerNum)
-		if player:HasCollectible(MyOwnMod.COLLECTIBLE_THE_ROCK) then
+		if player:HasCollectible(mod.COLLECTIBLE_THE_ROCK) then
 			for i, entity in pairs(Isaac.GetRoomEntities()) do
 				if entity:IsVulnerableEnemy() then
 					if player:GetFireDirection() == 0 then
@@ -1869,7 +1859,7 @@ function MyOwnMod:onUpdate()
 	-- Minus
 	for playerNum = 1, Game():GetNumPlayers() do
 		local player = Game():GetPlayer(playerNum)
-		if player:HasCollectible(MyOwnMod.COLLECTIBLE_BEEG_MINUS) then
+		if player:HasCollectible(mod.COLLECTIBLE_BEEG_MINUS) then
 			player:Kill()
 		end
 	end
@@ -1877,9 +1867,9 @@ function MyOwnMod:onUpdate()
 	
 end
 
-MyOwnMod:AddCallback(ModCallbacks.MC_POST_UPDATE, MyOwnMod.onUpdate)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.onUpdate_Rock)
 
-function MyOwnMod:PurpleStrawUse(itemID, rng, player)
+function mod:PurpleStrawUse(itemID, rng, player)
 	-- purple straw
 	for i, entity in ipairs(Isaac.GetRoomEntities()) do
 		local Number = math.random(1,5)
@@ -1908,9 +1898,9 @@ function MyOwnMod:PurpleStrawUse(itemID, rng, player)
     }
 end
 
-MyOwnMod:AddCallback(ModCallbacks.MC_USE_ITEM, MyOwnMod.PurpleStrawUse, MyOwnMod.COLLECTIBLE_PINK_STRAW)
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.PurpleStrawUse, mod.COLLECTIBLE_PINK_STRAW)
 
-function MyOwnMod:PixelatedCubeUse(itemID, rng, player)
+function mod:PixelatedCubeUse(itemID, rng, player)
 	-- pixelated cube
 	local BabyNumber = PixelatedCubeBabiesList[math.random(1, 30)]
 	player:GetEffects():AddCollectibleEffect(BabyNumber, false)
@@ -1925,13 +1915,13 @@ function MyOwnMod:PixelatedCubeUse(itemID, rng, player)
     }
 end
 
-MyOwnMod:AddCallback(ModCallbacks.MC_USE_ITEM, MyOwnMod.PixelatedCubeUse, MyOwnMod.COLLECTIBLE_PIXELATED_CUBE)
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.PixelatedCubeUse, mod.COLLECTIBLE_PIXELATED_CUBE)
 
-function MyOwnMod:OnRoomClear(player)
+function mod:OnRoomClear(player)
 	--110V double charge part
 	for playerNum = 1, Game():GetNumPlayers() do
 		local player = Game():GetPlayer(playerNum)
-		if player:HasCollectible(MyOwnMod.COLLECTIBLE_110V) then
+		if player:HasCollectible(mod.COLLECTIBLE_110V) then
 			local maxCharge = Isaac.GetItemConfig():GetCollectible(player:GetActiveItem(0)).MaxCharges
 			if player:GetActiveCharge(SLOT_PRIMARY) ~= maxCharge then
 				player:SetActiveCharge(player:GetActiveCharge(SLOT_PRIMARY) + 1, SLOT_PRIMARY)
@@ -1940,13 +1930,13 @@ function MyOwnMod:OnRoomClear(player)
 	end
 end
 
-MyOwnMod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, MyOwnMod.OnRoomClear)
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.OnRoomClear)
 
-MyOwnMod:AddCallback(ModCallbacks.MC_USE_ITEM, function()
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, function()
 	--110V damage on using active part
 	for playerNum = 1, Game():GetNumPlayers() do
 		local player = Game():GetPlayer(playerNum)
-		if player:HasCollectible(MyOwnMod.COLLECTIBLE_110V) then
+		if player:HasCollectible(mod.COLLECTIBLE_110V) then
 			local maxCharge = Isaac.GetItemConfig():GetCollectible(player:GetActiveItem(0)).MaxCharges
 			if maxCharge == 2 or maxCharge == 3 then
 				player:TakeDamage(1, DamageFlag.DAMAGE_NO_PENALTIES | DamageFlag.DAMAGE_NOKILL | DamageFlag.DAMAGE_INVINCIBLE | DamageFlag.DAMAGE_NO_MODIFIERS, EntityRef(player), 0)
@@ -1964,11 +1954,11 @@ MyOwnMod:AddCallback(ModCallbacks.MC_USE_ITEM, function()
 	end
 end)
 
-MyOwnMod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function()
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function()
 	if Game():GetFrameCount() > DiliriumEyeLastActivateFrame + 1 then
 		for playerNum = 1, Game():GetNumPlayers() do
 			local player = Game():GetPlayer(playerNum)
-			if player:HasCollectible(MyOwnMod.COLLECTIBLE_DILIRIUM_EYE) then
+			if player:HasCollectible(mod.COLLECTIBLE_DILIRIUM_EYE) then
 				if math.random(1,5) == 3 then
 				DiliriumEyeLastActivateFrame = Game():GetFrameCount()
 					if player:GetFireDirection() == 0 then
@@ -2006,7 +1996,7 @@ MyOwnMod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function()
 	end
 end)
 
-local Mod = RegisterMod("Teaboss", 1)
+
 
 local Items = {
     FlowTea = {
@@ -2014,7 +2004,7 @@ local Items = {
     }
 }
 
-function Mod:updateCache(_player, cacheFlag)
+function mod:updateCache_FlowTea(_player, cacheFlag)
     local player = Isaac.GetPlayer(0)
 	
 if cacheFlag == CacheFlag.CACHE_DAMAGE then
@@ -2033,26 +2023,26 @@ if cacheFlag == CacheFlag.CACHE_SHOTSPEED then
 		end
 	end		
 end 
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.updateCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_FlowTea)
 
-local Otmichka = RegisterMod("holyotmichka", 1)
 
-function Otmichka:onUpdate()	
+
+function mod:onUpdate_Otmichka()	
 	for playerNum = 1, Game():GetNumPlayers() do
 local player = Game():GetPlayer(playerNum)
 local spawnpos = Game():GetRoom():FindFreeTilePosition(Game():GetRoom():GetCenterPos(), 400)
-Otmichka.Collectible_HOLY_OTMICHKA = Isaac.GetItemIdByName("Holy master key") 
+mod.Collectible_HOLY_OTMICHKA = Isaac.GetItemIdByName("Holy master key") 
 
-if player:HasCollectible(Otmichka.Collectible_HOLY_OTMICHKA) then
+if player:HasCollectible(mod.Collectible_HOLY_OTMICHKA) then
 		if math.random(1,7) == 5 then
 	Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_ETERNALCHEST, 0 , Vector(320,320), Vector(0,0), nil)
 			end
 		end
 	end
 end  
-Mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD,Otmichka.onUpdate)
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.onUpdate_Otmichka)
 
-local Mod = RegisterMod("Dead", 1)
+
 
 local Dead = Isaac.GetItemIdByName("I want to live")
 local Alive = Isaac.GetItemIdByName("I am alive")
@@ -2060,7 +2050,7 @@ local Player = Isaac.GetPlayer(0)
 
 local game = Game()
 
-function Mod:PassiveDead()
+function mod:PassiveDead()
 		local Player = Isaac.GetPlayer(0)
     if Player:HasCollectible(Dead) then
          if Player:IsDead() then
@@ -2091,9 +2081,9 @@ function Mod:PassiveDead()
     end
 end
 
-Mod:AddCallback(ModCallbacks.MC_POST_UPDATE, Mod.PassiveDead)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.PassiveDead)
 
-function Mod:updateCache(_Player, cacheFlags)
+function mod:updateCache_Alive(_Player, cacheFlags)
 		local Player = Isaac.GetPlayer(0)
 
 		if cacheFlags == CacheFlag.CACHE_FIREDELAY then
@@ -2108,9 +2098,8 @@ function Mod:updateCache(_Player, cacheFlags)
 		end
 end
 
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.updateCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Alive)
 
-local Mod = RegisterMod("KOZOLBIMBIMBAMBAM", 1)
 
 local Items = {
     Kozol = {
@@ -2118,7 +2107,7 @@ local Items = {
     }
 }
 
-function Mod:updateCache(_player, cacheFlag)
+function mod:updateCache_Kozol(_player, cacheFlag)
     local player = Isaac.GetPlayer(0)
 	
 if cacheFlag == CacheFlag.CACHE_DAMAGE then
@@ -2157,7 +2146,7 @@ if cacheFlag == CacheFlag.CACHE_TEARFLAG then
         end
 	end 
 end 
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.updateCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Kozol)
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, function(_, ent, amount, flag)
     if ent:ToPlayer() and ent:ToPlayer():HasCollectible(Items.Kozol.ID) and flag & DamageFlag.DAMAGE_NO_PENALTIES == 0 then
         ent:Kill()
@@ -2170,7 +2159,7 @@ local Items = {
     }
 }
 
-function Mod:updateCache(_player, cacheFlag)
+function mod:updateCache_Buter(_player, cacheFlag)
     local player = Isaac.GetPlayer(0)
 	
 if cacheFlag == CacheFlag.CACHE_DAMAGE then
@@ -2194,9 +2183,8 @@ if cacheFlag == CacheFlag.CACHE_TEARFLAG then
 		end
 	end 
 end 
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.updateCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Buter)
 
-local Mod = RegisterMod("Minus", 1) -- Change the part in quotes to match your mod name
  
 local Minusaac = { -- Change Minusaac everywhere to match your character. No spaces!
     DAMAGE = 0.7, -- These are all relative to Isaac's base stats.
@@ -2210,7 +2198,7 @@ local Minusaac = { -- Change Minusaac everywhere to match your character. No spa
     TEARCOLOR = Color(1.0, 1.0, 1.0, 1.0, 0, 0, 0)  -- Color(1.0, 1.0, 1.0, 1.0, 0, 0, 0) is default
 }
  
-function Minusaac:onCache(player, cacheFlag) -- I do mean everywhere!
+function mod:onCache_Minus(player, cacheFlag) -- I do mean everywhere!
     if player:GetName() == "Minusaac" then -- Especially here!
         if cacheFlag == CacheFlag.CACHE_DAMAGE then
             player.Damage = player.Damage + Minusaac.DAMAGE
@@ -2240,7 +2228,7 @@ function Minusaac:onCache(player, cacheFlag) -- I do mean everywhere!
     end
 end
  
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Minusaac.onCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.onCache_Minus)
 
 function AddFlag(...)
     local ToReturn = 0
@@ -2366,7 +2354,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM,function ()
     end
 end)
 
-local mod = RegisterMod("ShaderMod", 1)
+
 local Items = {
     Mama = {
         ID = Isaac.GetItemIdByName("VHS cassette")
@@ -2385,7 +2373,7 @@ end
 	end
 end 
 
-function Mod:updateCache(_player, cacheFlag)
+function mod:updateCache(_player, cacheFlag)
     local player = Isaac.GetPlayer(0)
 	if cacheFlag == CacheFlag.CACHE_SPEED then
 	    if player:HasCollectible(Items.Mama.ID) then 
@@ -2394,7 +2382,7 @@ function Mod:updateCache(_player, cacheFlag)
 	end
 end 
 mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.updateCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache)
 mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
  if tear.SpawnerEntity and tear.SpawnerEntity:ToPlayer() then
     if tear.SpawnerEntity:ToPlayer():HasCollectible(Items.Mama.ID) then
@@ -2403,14 +2391,14 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function(_, tear)
   end
 end)
 
-local mod = RegisterMod("Noice", 1)
+
 local game = Game()
 local music = MusicManager()
 
 CollectibleType.COLLECTIBLE_EXECUTIONER_HELMET = Isaac.GetItemIdByName("Executioner helmet")
 Music.MUSIC_MAESTRO = Isaac.GetMusicIdByName("BFG")
 
-function mod:onUpdate(player)
+function mod:onUpdate_ExHelmet(player)
 
 	if music:GetCurrentMusicID() ~= Music.MUSIC_MAESTRO
 	and player:GetActiveItem() == CollectibleType.COLLECTIBLE_EXECUTIONER_HELMET
@@ -2419,20 +2407,19 @@ function mod:onUpdate(player)
 	end 
 end 
 
-mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.onUpdate)
+mod:AddCallback(ModCallbacks.MC_POST_PEFFECT_UPDATE, mod.onUpdate_ExHelmet)
 
-local mod = RegisterMod("HAAAAM", 1)
 local game = Game()
 
 TrinketType.TRINKET_HAM = Isaac.GetTrinketIdByName("Hammer")
 
-function Mod:onCache(player, flag)
+function mod:onCache(player, flag)
 	if flag == CacheFlag.CACHE_TEARFLAG and player:HasTrinket(TrinketType.TRINKET_HAM) then
 		player.TearFlags = player.TearFlags | TearFlags.TEAR_ACID
 	end 
 end 
 
-Mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Mod.onCache)
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.onCache)
 
 local Thumper = {}
 Thumper.type = Isaac.GetEntityTypeByName("Thumper")
@@ -2478,7 +2465,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE,function (_,Player)
     end
 end)
 
-mod = RegisterMod("EpicnessUltima",1)
+
 
 function AddFlag(...)
     local ToReturn = 0

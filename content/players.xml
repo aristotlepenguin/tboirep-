@@ -2,12 +2,12 @@
          portraitroot="gfx/ui/boss/" 
          nameimageroot="gfx/ui/boss/" 
          bigportraitroot="gfx/ui/stage/">
-	<player id="3" name="Sim" skin="character_sim.png" hp="6" bombs="1" items="740" 
+	<player id="3" name="Sim" skin="character_sim.png" hp="6" bombs="1"
           nameimage="sim.png" 
           portrait="BigTemplatePortrait.png" 
           bigportrait="BigTemplatePortrait.png" skinColor="-1"
 		  birthright="not done" />
-	<player name="Minusaac" skin="minus.png" hp="6" bombs="0" items="765"
+	<player name="Minusaac" skin="minus.png" hp="6" bombs="0"
           nameimage="minus.png" 
           portrait="Musaacis.png" 
           bigportrait="Musaacis.png" skinColor="-1"
