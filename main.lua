@@ -2868,16 +2868,57 @@ function mod:Anm()
     if REPENTOGON then
         local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
         
-        Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
+        --Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
     end
     if game:GetFrameCount() == 1 then 
         player:AnimateHappy()
     end 
 end 
 
-
-
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.Anm)
+-----------------------------------------------------------------
+--frosty unlock
+------------------------------------------------------------------
+local a = BackdropType.BLUE_WOMB_PASS
+
+function mod:OnEnterBossRush()
+    local room = game:GetRoom()
+    if room:GetType() == RoomType.ROOM_BOSSRUSH and REPENTOGON then
+        room:SetBackdropType(BackdropType.BLUE_WOMB_PASS, 3)
+        for i=1, room:GetGridSize() do
+            local ge = room:GetGridEntity(i)
+            if ge and ge.Desc.Type ~= 16 then
+                room:RemoveGridEntity(i, 0)
+            end
+        end
+        if room:IsFirstVisit() or true then
+            local items = Isaac.FindByType(5, 100)
+            for i, item in ipairs(items) do
+                item:Remove()
+            end
+            Isaac.Spawn(6, 14, 0, room:GetCenterPos(), Vector.Zero, nil)
+        end
+
+        local frosties = Isaac.FindByType(6, 14)
+        for i, dude in ipairs(frosties) do
+            dude:GetSprite():ReplaceSpritesheet(0, "gfx/characters/costumes/character_frosty.png")
+            dude:GetSprite():LoadGraphics()
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnEnterBossRush)
+
+
+--MC_PRE_PLAYER_COLLISION
+
+function mod:onCollisionSecret(player, collider, low)
+    if collider.Type == 6 and collider.Variant == 14 and player:GetRoom():GetType() == RoomType.ROOM_BOSSRUSH then
+        Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, mod.onCollisionSecret)
+
+
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------
 --EID, keep this at the bottom!!
