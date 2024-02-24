@@ -1,3 +1,4 @@
 <pocketitems>
 	<card type="object" name="Minus Shard" description="???" hud="MinusShard" pickup="1011"/>
+	<card type="object" name="Icicle" description="Feels frosty..." hud="Icicle" mimiccharge="1" pickup="63871"/>
 </pocketitems>

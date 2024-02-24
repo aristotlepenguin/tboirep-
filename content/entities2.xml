@@ -33,6 +33,10 @@
         <preload-snd id="201" />
     </entity>
 	
+    <entity anm2path="cards_2_icicle.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="12" friction="1" id="5" name="Icicle" numGridCollisionPoints="24" shadowSize="16" stageHP="0" variant="300" subtype="63871">
+        <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0" />
+    </entity>
+
     <entity anm2path="familiars/tsunfly.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="7" friction="1" id="3" name="Tsun_Fly" numGridCollisionPoints="12" shadowSize="6" stageHP="0" variant="128">
         <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0" />
     </entity> 

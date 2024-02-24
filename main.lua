@@ -2801,7 +2801,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function(_)
     end
 
     mod:AnyPlayerDo(function(player)
-        if player:GetPlayerType() == frostType then
+        if player:GetPlayerType() == frostType or saveTable.Repm_Iced then
             hasIt = true
         end
     end)
@@ -2861,16 +2861,14 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
     end
 end)
 
-
+if REPENTOGON then
+    local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
+    --Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
+end
 
 function mod:Anm()
-    local player = Isaac.GetPlayer(0)
-    if REPENTOGON then
-        local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
-        
-        --Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
-    end
     if game:GetFrameCount() == 1 then 
+        local player = Isaac.GetPlayer(0)
         player:AnimateHappy()
     end 
 end 
@@ -2879,11 +2877,27 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.Anm)
 -----------------------------------------------------------------
 --frosty unlock
 ------------------------------------------------------------------
-local a = BackdropType.BLUE_WOMB_PASS
+local iceCard = Isaac.GetCardIdByName("Icicle")
+
+function mod:OnBossDefeat_Frosty(rng, spawn)
+    if REPENTOGON then
+        FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
+        if not Isaac.GetPersistentGameData():Unlocked(FrostyAchId) and
+        game:GetRoom():GetType() == RoomType.ROOM_BOSS and
+        game:GetLevel():GetStage() == 1 and
+        game:GetLevel():GetStageType() <= 2 then
+            local spawnPos = game:GetRoom():FindFreePickupSpawnPosition(game:GetRoom():GetCenterPos())
+            Isaac.Spawn(5, 300, iceCard, spawnPos, Vector.Zero, nil)
+        end
+    end
+    saveTable.Repm_Iced = false
+end
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.OnBossDefeat_Frosty)
 
 function mod:OnEnterBossRush()
+    saveTable.Repm_Iced = false
     local room = game:GetRoom()
-    if room:GetType() == RoomType.ROOM_BOSSRUSH and REPENTOGON then
+    if room:GetType() == RoomType.ROOM_BOSSRUSH and REPENTOGON and saveTable.repM_FrostyUnlock then
         room:SetBackdropType(BackdropType.BLUE_WOMB_PASS, 3)
         for i=1, room:GetGridSize() do
             local ge = room:GetGridEntity(i)
@@ -2891,7 +2905,7 @@ function mod:OnEnterBossRush()
                 room:RemoveGridEntity(i, 0)
             end
         end
-        if room:IsFirstVisit() or true then
+        if room:IsFirstVisit() then
             local items = Isaac.FindByType(5, 100)
             for i, item in ipairs(items) do
                 item:Remove()
@@ -2904,15 +2918,38 @@ function mod:OnEnterBossRush()
             dude:GetSprite():ReplaceSpritesheet(0, "gfx/characters/costumes/character_frosty.png")
             dude:GetSprite():LoadGraphics()
         end
+    elseif game:GetRoom():GetType() == RoomType.ROOM_BOSS and game:GetLevel():GetStage() == 6 and saveTable.repM_FrostyUnlock then
+        room:TrySpawnBossRushDoor()
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnEnterBossRush)
 
 
+function mod:UseIcicle(card, player, useflags)
+    if game:GetRoom():GetType() == RoomType.ROOM_BOSS and
+    game:GetLevel():GetStage() == 6 and REPENTOGON then
+        saveTable.repM_FrostyUnlock = true
+        local entities = Isaac.GetRoomEntities()
+        for i, npc in ipairs(entities) do
+            if npc:IsVulnerableEnemy() and npc:IsBoss() then
+                npc:TakeDamage(9999, 0, EntityRef(player), 1)
+            elseif npc:IsVulnerableEnemy() then
+                npc:AddEntityFlags(EntityFlag.FLAG_ICE)
+                npc:TakeDamage(9999, 0, EntityRef(player), 1)
+            end
+        end
+        room:TrySpawnBossRushDoor()
+    elseif not room:IsClear() then
+        saveTable.Repm_Iced = true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.UseIcicle, iceCard)
+
 --MC_PRE_PLAYER_COLLISION
 
 function mod:onCollisionSecret(player, collider, low)
-    if collider.Type == 6 and collider.Variant == 14 and player:GetRoom():GetType() == RoomType.ROOM_BOSSRUSH then
+    if collider.Type == 6 and collider.Variant == 14 and game:GetRoom():GetType() == RoomType.ROOM_BOSSRUSH then
+        FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
         Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
     end
 end
