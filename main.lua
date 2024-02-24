@@ -293,7 +293,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.PostNewRoom)
 
 function mod:PlayerHurt(TookDamage, DamageAmount, DamageFlags, DamageSource, DamageCountdownFrames)
 	local player = TookDamage:ToPlayer()
-	if player:HasCollectible(CollectibleType.COLLECTIBLE_DONKEY_JAWBONE) then
+	if player:HasCollectible(mod.COLLECTIBLE_DONKEY_JAWBONE) then
 		if player:HasCollectible(CollectibleType.COLLECTIBLE_20_20) then
 			ExtraSpins = ExtraSpins + 1
 		end
@@ -2851,7 +2851,7 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
                     npc:GetData().RepM_Frosty_Sprite:Load("gfx/chill_status.anm2",true)
                     npc:GetData().RepM_Frosty_Sprite:Play("Idle")
                 end
-                local position = Isaac.WorldToRenderPosition(npc.Position+npc:GetNullOffset("OverlayEffect"))--
+                local position = Isaac.WorldToScreen(npc.Position+npc:GetNullOffset("OverlayEffect"))--
                 print(tostring(position.X) .. " " .. tostring(position.Y))
                 npc:GetData().RepM_Frosty_Sprite:Render(position)
                 npc:GetData().RepM_Frosty_Sprite:Update()
