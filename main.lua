@@ -2845,7 +2845,7 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
     if REPENTOGON and shaderName == "REPMEmptyShader" then
         local entities = Isaac.GetRoomEntities()
         for i, npc in ipairs(entities) do
-            if npc:GetData().RepM_Frosty_FreezePoint ~= nil and npc:IsVulnerableEnemy() then
+            if npc:GetData().RepM_Frosty_FreezePoint ~= nil and npc:IsVulnerableEnemy() and not game:IsPaused() then
                 if not npc:GetData().RepM_Frosty_Sprite then
                     npc:GetData().RepM_Frosty_Sprite = Sprite()
                     npc:GetData().RepM_Frosty_Sprite:Load("gfx/chill_status.anm2",true)
