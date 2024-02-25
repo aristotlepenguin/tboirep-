@@ -31,7 +31,6 @@ end
 
 
 local DSSInitializerFunction = include("lua.lib.DSSMenu")
-print(DSSInitializerFunction)
 DSSInitializerFunction(mod)
 
 local activeItems = {}
@@ -2274,7 +2273,7 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM,function (_,_,_,Player)
     if Player:GetPlayerType() ~= Minusaac then
         return
     end
-    print(Player:GetEffectiveMaxHearts())
+    --print(Player:GetEffectiveMaxHearts())
     if Player:GetEffectiveMaxHearts() > 2 or (Player:GetEffectiveMaxHearts() > 0 and Player:GetSoulHearts() > 0) then
         Player:AddMaxHearts(-2)
     elseif Player:GetSoulHearts() > 4 or (Player:GetEffectiveMaxHearts() > 0 and Player:GetSoulHearts() >= 4) then
@@ -2621,7 +2620,7 @@ whiteColor:SetTint(20, 20, 20, 2)
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, player, cache_flag)
     if cache_flag == CacheFlag.CACHE_FAMILIARS then
         local familiar_count = player:GetCollectibleNum(CollectibleType.COLLECTIBLE_TSUNDERE_FLY) * 2
-        print(familiar_count)
+        --print(familiar_count)
         player:CheckFamiliar(tsunFlyVar, familiar_count, player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_TSUNDERE_FLY))
     end
 end
@@ -2747,9 +2746,6 @@ function mod:repmGetPData(player)
     return data.repmSaveData
 end
 
-
-
-
 --------------------------------------------------------------
 --FROSTY
 --------------------------------------------------------------
@@ -2859,7 +2855,7 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
                     npc:GetData().RepM_Frosty_Sprite:Play("Idle")
                 end
                 local position = Isaac.WorldToScreen(npc.Position+npc:GetNullOffset("OverlayEffect"))--
-                print(tostring(position.X) .. " " .. tostring(position.Y))
+                --print(tostring(position.X) .. " " .. tostring(position.Y))
                 npc:GetData().RepM_Frosty_Sprite:Render(position)
                 npc:GetData().RepM_Frosty_Sprite:Update()
                 --print("ding!")
@@ -2961,6 +2957,9 @@ function mod:onCollisionSecret(player, collider, low)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, mod.onCollisionSecret)
+
+
+
 
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
