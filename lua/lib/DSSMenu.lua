@@ -102,25 +102,17 @@ local strings = {
         en = dssmod.menuOpenToolTip,
         ru = { strset = { 'переключение', 'меню', '', 'клавиатура:', '[c] или [f1]', '', 'контроллер:', 'нажатие', 'на стик' }, fsize = 2 }
     },
-    spelunker_bomb_mode1 = {
-        en = "spelunker pack",
-        ru = "режим рюкзака",
+    thumbs_up = {
+        en = "thumbs up",
+        --ru = "режим рюкзака",
     },
-    spelunker_bomb_mode2 = {
-        en = "mode",
-        ru = "спелеолога",
-    },
-    sbm_var1 = {
-		en = "destroy specials",
-		ru = "взрывать особые",
+    tu_var1 = {
+		en = "on",
+		--ru = "взрывать особые",
 	},
-	sbm_var2 = {
-		en = "bombs in hand",
-		ru = "бомбы в руки",
-	},
-	sbm_var3 = {
-		en = "both",
-		ru = "оба",
+	tu_var2 = {
+		en = "off",
+		--ru = "бомбы в руки",
 	},
 }
 local function GetStr(str)
@@ -149,17 +141,16 @@ RepMMod.DSSdirectory = {
         buttons = {
             {str = GetStr('resume_game'), action = 'resume'},
                 {str = '', nosel = true, fsize = 3},
-                {str = GetStr('spelunker_bomb_mode1'), nosel = true, fsize = 3},
                 {
-                    str = GetStr('spelunker_bomb_mode2'),
-                    choices = {GetStr('sbm_var1'),GetStr('sbm_var2'),GetStr('sbm_var3')}, 
-                    variable = 'SpelunkerBombMode',
+                    str = GetStr('thumbs_up'),
+                    choices = {GetStr('tu_var1'),GetStr('tu_var2')}, 
+                    variable = 'StartThumbsUp',
                     setting = 1,
                     load = function()
-                        return RepMMod.MenuData.SpelunkerBombMode or 1
+                        return RepMMod.MenuData.StartThumbsUp or 1
                     end,
                     store = function(var)
-                        RepMMod.MenuData.SpelunkerBombMode = var
+                        RepMMod.MenuData.StartThumbsUp = var
                         RepMMod.SpelunkersPackEffectType = var
                     end,
                 },

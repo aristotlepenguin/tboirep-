@@ -12,6 +12,7 @@ print("Thanks for playing the TBOI REP NEGATIVE [Commmunity Mod] - Currently run
 local saveTable = {}
 
 
+
 function mod.GetMenuSaveData()
     if not mod.MenuData then
         if mod:HasData() then
@@ -2695,6 +2696,8 @@ function mod:saveData()
     local numPlayers = game:GetNumPlayers()
     saveTable.PlayerData = {}
 
+    saveTable.MenuData = mod.MenuData
+
     for i=0, numPlayers-1, 1 do
         local player = Isaac.GetPlayer(i)
 
@@ -2711,6 +2714,10 @@ mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.saveData)
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.saveData)
 
 function mod:loadData(isSave)
+    if mod:HasData() then
+        local perData = json.decode(mod:LoadData())
+        mod.MenuData = perData.MenuData
+    end
     if mod:HasData() and isSave then
         local numPlayers = game:GetNumPlayers()
         saveTable = json.decode(mod:LoadData())
@@ -2867,7 +2874,7 @@ if REPENTOGON then
 end
 
 function mod:Anm()
-    if game:GetFrameCount() == 1 then 
+    if game:GetFrameCount() == 1 and mod.MenuData.StartThumbsUp ~= 2 then
         local player = Isaac.GetPlayer(0)
         player:AnimateHappy()
     end 
@@ -2927,7 +2934,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnEnterBossRush)
 
 function mod:UseIcicle(card, player, useflags)
     if game:GetRoom():GetType() == RoomType.ROOM_BOSS and
-    game:GetLevel():GetStage() == 6 and REPENTOGON then
+    game:GetLevel():GetStage() == 6 and REPENTOGON and not room:IsClear() then
         saveTable.repM_FrostyUnlock = true
         local entities = Isaac.GetRoomEntities()
         for i, npc in ipairs(entities) do
@@ -2938,7 +2945,7 @@ function mod:UseIcicle(card, player, useflags)
                 npc:TakeDamage(9999, 0, EntityRef(player), 1)
             end
         end
-        room:TrySpawnBossRushDoor()
+        game:GetRoom():TrySpawnBossRushDoor()
     elseif not room:IsClear() then
         saveTable.Repm_Iced = true
     end
@@ -2963,9 +2970,14 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, mod.onCollisionSecret)
 
 if EID then
     EID:addCollectible(mod.COLLECTIBLE_DONKEY_JAWBONE, DJdesc, "Donkey Jawbone", "en_us")
-    
+    EID:addCollectible(CollectibleType.COLLECTIBLE_TSUNDERE_FLY, "Spawns two fly orbitals that deflect projectiles#Deflected sshots become homing, and freeze any non-boss enemy they touch.", "Frozen Flies", "en_us")
+
     EID:addTrinket(Trinket.PocketTechology, "Deal 1.5x more damage to champion enemies and champion bosses", "Pocket Techology", "en_us");
 
+    EID:addCard(iceCard, "Using it in most rooms slowly begins to freeze all enemies. #Non-boss enemies in the room gradually turn blue before freezing completely#Use this item in the Mom fight for a different effect...", "Icicle", "en_us")
+    local iceHud = Sprite()
+    iceHud:Load("gfx/cards_2_icicle.anm2", true)
+    EID:addIcon("Card" .. tostring(iceCard), "HUDSmall", 0, 16, 16, 6, 6, iceHud)
 
 end
 
