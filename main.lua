@@ -10,7 +10,7 @@ local game = Game()
 local version = ": 0.7a" --added by me (pedro), for making updating version number easier
 print("Thanks for playing the TBOI REP NEGATIVE [Commmunity Mod] - Currently running version"..tostring(version))
 local saveTable = {}
-
+local globalRng = RNG()
 
 
 function mod.GetMenuSaveData()
@@ -2906,7 +2906,7 @@ function mod:stickyTrinket(pickup, collider, low)
             Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, trinketDrop, player.Position, Vector(0, 0), nil)
             return nil
         else
-            return false
+            return nil
         end
     else
         return false
@@ -2940,6 +2940,37 @@ function mod:DebugText()
 
 end
 --mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.DebugText)
+
+
+function mod:OnEntitySpawn_Polar(npc)
+    local chosenPlayer
+    mod:AnyPlayerDo(function(player)
+        if player:HasTrinket(polaroidTrinket) then
+            chosenPlayer = player
+        end
+    end)
+    if player ~= nil then
+        if not npc:IsChampion() and not npc:IsBoss() and globalRng:RandomInt(8) == 1 then
+            npc:MakeChampion(globalRng:GetSeed())
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NPC_INIT, mod.OnEntitySpawn_Polar)
+
+
+function mod:OnTakeHit_Polar(entity, amount, damageflags, source, countdownframes)
+    local player = entity:ToPlayer()
+    if player == nil then
+        return
+    end
+    local data = mod:repmGetPData()
+    if amount == 1 and player:HasTrinket(polaroidTrinket) and not data.inPolaroidDamage then
+        data.inPolaroidDamage = true
+        player:TakeDamage(amount, damageflags, source, countdownframes)
+    end
+    data.inPolaroidDamage = nil
+end
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.OnTakeHit_Polar, EntityType.ENTITY_PLAYER)
 
 
 -----------------------------------------------------------------
