@@ -142,7 +142,7 @@ RepMMod.DSSdirectory = {
             {str = GetStr('resume_game'), action = 'resume'},
                 {str = '', nosel = true, fsize = 3},
                 {
-                    str = GetStr('thumbs_up'),
+                    str = GetStr('happy_start'),
                     choices = {GetStr('tu_var1'),GetStr('tu_var2')}, 
                     variable = 'StartThumbsUp',
                     setting = 1,
