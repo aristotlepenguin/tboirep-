@@ -2763,10 +2763,10 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
     end)
 end)
 
-local percentFreezePerSecond = 30 --chance to freeze every second
+local percentFreezePerSecond = 42 --chance to freeze every second
 local frostRNG = RNG()
 local frameBetweenDebuffs = 150 -- 30 frames per second
-local damageDownPerDebuff = 0.75
+local damageDownPerDebuff = 0.40
 local lastFrame = 0
 local minFrameFreeze = 30 -- 1 second
 local maxFrameFreeze = 900 -- 30 seconds
