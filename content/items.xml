@@ -51,4 +51,5 @@
 	<trinket name="Pocket Techology" description="like tech... but dont tech..." gfx="PocketTechology.png" />
 	<trinket name="MORE OPTIONS" description="why isn't this in the game :(" gfx="MORE OPTIONS.png" />
 	<trinket name="Hammer" description="boink" cache="tearflag" gfx="hammer.png" />
+	<trinket name="Frozen Polaroid" description="They preserved you in ice" gfx="frozen_polaroid.png" />
 </items>

@@ -2877,6 +2877,71 @@ function mod:Anm()
 end 
 
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.Anm)
+
+--------------------------------------------------------------------------
+--FROZEN POLAROID
+--------------------------------------------------------------------------
+
+local polaroidTrinket = Isaac.GetTrinketIdByName("Frozen Polaroid")
+
+
+function mod:stickyTrinket(pickup, collider, low)
+    if not collider:ToPlayer() or not collider:ToPlayer():HasTrinket(polaroidTrinket) then
+        return nil
+    end
+    local player = collider:ToPlayer()
+    if player:GetTrinket(0) ~= polaroidTrinket and player:GetTrinket(1) ~= polaroidTrinket then
+        return nil
+    end
+
+    if player:GetMaxTrinkets() > 1 then
+        if player:GetTrinket(0) == polaroidTrinket and player:GetTrinket(1) ~= 0 then
+            local trinketDrop = player:GetTrinket(1)
+            player:TryRemoveTrinket(trinketDrop)
+            Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, trinketDrop, player.Position, Vector(0, 0), nil)
+            return nil
+        elseif player:GetTrinket(1) == polaroidTrinket and player:GetTrinket(0) ~= 0 then
+            local trinketDrop = player:GetTrinket(0)
+            player:TryRemoveTrinket(trinketDrop)
+            Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_TRINKET, trinketDrop, player.Position, Vector(0, 0), nil)
+            return nil
+        else
+            return false
+        end
+    else
+        return false
+    end
+    
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.stickyTrinket, PickupVariant.PICKUP_TRINKET)
+
+function mod:tryOpenDoor_Fro_Polaroid(player)
+    --and player:CollidesWithGrid() 
+    if game:GetLevel():GetStage() == 6 and game:GetLevel():GetStageType() <= 2 
+    and player.Position.Y < 151 and player.Position:Distance(Vector(320, 150)) <=26
+    and game:GetLevel():GetCurrentRoomIndex() == 84 and player:HasTrinket(polaroidTrinket) then
+        local door = game:GetRoom():GetDoor(1)
+        if not door:IsOpen() then
+            door:TryUnlock(player, true)
+            player:TryRemoveTrinket(polaroidTrinket)
+            saveTable.repM_FrostyUnlock = true
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.tryOpenDoor_Fro_Polaroid)
+
+function mod:DebugText()
+    local player = Isaac.GetPlayer(0) --this one is OK
+    local coords = (player.Position):Distance(Vector(320, 150))
+    --local coords = player.Position
+    local debug_str = tostring(coords)
+    --26
+    Isaac.RenderText(debug_str, 100, 60, 1, 1, 1, 255)
+
+end
+--mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.DebugText)
+
+
 -----------------------------------------------------------------
 --frosty unlock
 ------------------------------------------------------------------
@@ -2890,18 +2955,19 @@ function mod:OnBossDefeat_Frosty(rng, spawn)
         game:GetLevel():GetStage() == 1 and
         game:GetLevel():GetStageType() <= 2 then
             local spawnPos = game:GetRoom():FindFreePickupSpawnPosition(game:GetRoom():GetCenterPos())
-            Isaac.Spawn(5, 300, iceCard, spawnPos, Vector.Zero, nil)
+            Isaac.Spawn(5, 350, polaroidTrinket, spawnPos, Vector.Zero, nil)
         end
     end
     saveTable.Repm_Iced = false
 end
 mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.OnBossDefeat_Frosty)
 
-function mod:OnEnterBossRush()
+function mod:OnEnterSecretExit()
     saveTable.Repm_Iced = false
     local room = game:GetRoom()
-    if room:GetType() == RoomType.ROOM_BOSSRUSH and REPENTOGON and saveTable.repM_FrostyUnlock then
-        room:SetBackdropType(BackdropType.BLUE_WOMB_PASS, 3)
+    if room:GetType() == RoomType.ROOM_SECRET_EXIT and game:GetLevel():GetStage() == 6 
+    and game:GetLevel():GetStageType() <= 2 and REPENTOGON and saveTable.repM_FrostyUnlock then
+        --room:SetBackdropType(BackdropType.BLUE_WOMB_PASS, 3)
         for i=1, room:GetGridSize() do
             local ge = room:GetGridEntity(i)
             if ge and ge.Desc.Type ~= 16 then
@@ -2921,11 +2987,11 @@ function mod:OnEnterBossRush()
             dude:GetSprite():ReplaceSpritesheet(0, "gfx/characters/costumes/character_frosty.png")
             dude:GetSprite():LoadGraphics()
         end
-    elseif game:GetRoom():GetType() == RoomType.ROOM_BOSS and game:GetLevel():GetStage() == 6 and saveTable.repM_FrostyUnlock then
-        room:TrySpawnBossRushDoor()
+    --elseif game:GetRoom():GetType() == RoomType.ROOM_BOSS and game:GetLevel():GetStage() == 6 and saveTable.repM_FrostyUnlock then
+        --room:TrySpawnBossRushDoor()
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnEnterBossRush)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnEnterSecretExit)
 
 
 function mod:UseIcicle(card, player, useflags)
@@ -2946,7 +3012,7 @@ function mod:UseIcicle(card, player, useflags)
         saveTable.Repm_Iced = true
     end
 end
-mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.UseIcicle, iceCard)
+--mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.UseIcicle, iceCard)
 
 --MC_PRE_PLAYER_COLLISION
 
@@ -2969,7 +3035,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, mod.onCollisionSecret)
 
 if EID then
     EID:addCollectible(mod.COLLECTIBLE_DONKEY_JAWBONE, DJdesc, "Donkey Jawbone", "en_us")
-    EID:addCollectible(CollectibleType.COLLECTIBLE_TSUNDERE_FLY, "Spawns two fly orbitals that deflect projectiles#Deflected sshots become homing, and freeze any non-boss enemy they touch.", "Frozen Flies", "en_us")
+    EID:addCollectible(CollectibleType.COLLECTIBLE_TSUNDERE_FLY, "Spawns two fly orbitals that deflect projectiles#Deflected shots become homing, and freeze any non-boss enemy they touch.", "Frozen Flies", "en_us")
 
     EID:addTrinket(Trinket.PocketTechology, "Deal 1.5x more damage to champion enemies and champion bosses", "Pocket Techology", "en_us");
 
