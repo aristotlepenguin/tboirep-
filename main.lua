@@ -2782,7 +2782,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
             local room = game:GetRoom()
             if frame % frameBetweenDebuffs == 0 then
                 local pdata = mod:repmGetPData(player)
-                if not room:IsClear() then
+                if not room:IsClear() and game:GetRoom():GetType() ~= RoomType.ROOM_BOSS and game:GetRoom():GetType() ~= RoomType.ROOM_MINIBOSS then
                     pdata.FrostDamageDebuff = (pdata.FrostDamageDebuff or 0) + 1
                 elseif room:IsClear() then
                     pdata.FrostDamageDebuff = 0
@@ -2963,7 +2963,7 @@ function mod:OnTakeHit_Polar(entity, amount, damageflags, source, countdownframe
     if player == nil then
         return
     end
-    local data = mod:repmGetPData()
+    local data = mod:repmGetPData(player)
     if amount == 1 and player:HasTrinket(polaroidTrinket) and not data.inPolaroidDamage then
         data.inPolaroidDamage = true
         player:TakeDamage(amount, damageflags, source, countdownframes)
