@@ -1,14 +1,14 @@
  --[[Итак мамкины программисты, кто решил залесть в код мода, то не удивляйтесь его странному оформлению и как он странно написан. 
-    Если кто-то шарит за код, то это мой первый опыт и я писал каждое новвоведение через RegisterMod]] 
+    Если кто-то шарит за код, то это мой первый опыт]] 
 --[[So mom’s programmers, who decided to get into the mod’s code, don’t be surprised at its strange design and how strangely it is written.
-    If anyone is looking for code, this is my first experience and I wrote every innovation through RegisterMod]]
+    If anyone is looking for code, this is my first experience]]
 
 local mod = RegisterMod("tboirep-", 1.0)
 RepMMod = mod
 local json = require("json")
 local game = Game()
 local version = ": 0.7a" --added by me (pedro), for making updating version number easier
-print("Thanks for playing the TBOI REP NEGATIVE [Commmunity Mod] - Currently running version"..tostring(version))
+print("Thanks for playing the TBOI REP NEGATIVE [Community Mod] - Currently running version"..tostring(version))
 local saveTable = {}
 local globalRng = RNG()
 
@@ -2763,10 +2763,10 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
     end)
 end)
 
-local percentFreezePerSecond = 30 --chance to freeze every second
+local percentFreezePerSecond = 42 --chance to freeze every second
 local frostRNG = RNG()
 local frameBetweenDebuffs = 150 -- 30 frames per second
-local damageDownPerDebuff = 0.75
+local damageDownPerDebuff = 0.40
 local lastFrame = 0
 local minFrameFreeze = 30 -- 1 second
 local maxFrameFreeze = 900 -- 30 seconds
