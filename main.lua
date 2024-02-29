@@ -31,7 +31,24 @@ function mod.StoreSaveData()
     saveTable.MenuData = mod.MenuData
 end
 
+function mod:getPlayerFromKnifeLaser(entity)
+	if entity.SpawnerEntity and entity.SpawnerEntity:ToPlayer() then
+		return entity.SpawnerEntity:ToPlayer()
+	elseif entity.SpawnerEntity and entity.SpawnerEntity:ToFamiliar() and entity.SpawnerEntity:ToFamiliar().Player then
+		local familiar = entity.SpawnerEntity:ToFamiliar()
 
+		if familiar.Variant == FamiliarVariant.INCUBUS or familiar.Variant == FamiliarVariant.SPRINKLER or
+		   familiar.Variant == FamiliarVariant.TWISTED_BABY or familiar.Variant == FamiliarVariant.BLOOD_BABY or
+		   familiar.Variant == FamiliarVariant.UMBILICAL_BABY or familiar.Variant == FamiliarVariant.CAINS_OTHER_EYE
+		then
+			return familiar.Player
+		else
+			return nil
+		end
+	else
+		return nil
+	end
+end
 
 local DSSInitializerFunction = include("lua.lib.DSSMenu")
 DSSInitializerFunction(mod)
@@ -1422,301 +1439,68 @@ function mod:LazerColor(player, cacheFlag)
     end 
 end
 
+local tech1Flags = {TearFlags.TEAR_SLOW,
+TearFlags.TEAR_HOMING,
+TearFlags.TEAR_POISON,
+TearFlags.TEAR_SPLIT,
+TearFlags.TEAR_FREEZE,
+TearFlags.TEAR_GROW,
+TearFlags.TEAR_BOOMERANG,
+TearFlags.TEAR_PERSISTENT,
+TearFlags.TEAR_WIGGLE,
+TearFlags.TEAR_MULLIGAN,
+TearFlags.TEAR_EXPLOSIVE,
+TearFlags.TEAR_CONFUSION,
+TearFlags.TEAR_CHARM,
+TearFlags.TEAR_ORBIT,
+TearFlags.TEAR_WAIT,
+TearFlags.TEAR_QUADSPLIT,
+TearFlags.TEAR_BOUNCE,
+TearFlags.TEAR_FEAR,
+TearFlags.TEAR_SHRINK,
+TearFlags.TEAR_BURN,
+TearFlags.TEAR_KNOCKBACK,
+TearFlags.TEAR_SPIRAL,
+TearFlags.TEAR_SQUARE,
+TearFlags.TEAR_GLOW,
+TearFlags.TEAR_GISH,
+TearFlags.TEAR_MYSTERIOUS_LIQUID_CREEP,
+TearFlags.TEAR_STICKY,
+TearFlags.TEAR_CONTINUUM,
+TearFlags.TEAR_LIGHT_FROM_HEAVEN,
+TearFlags.TEAR_TRACTOR_BEAM,
+TearFlags.TEAR_BIG_SPIRAL,
+TearFlags.TEAR_BOOGER,
+TearFlags.TEAR_ACID,
+TearFlags.TEAR_BONE,
+TearFlags.TEAR_JACOBS,
+TearFlags.TEAR_LASER,
+TearFlags.TEAR_POP,
+TearFlags.TEAR_ABSORB,
+TearFlags.TEAR_HYDROBOUNCE,
+TearFlags.TEAR_BURSTSPLIT,
+TearFlags.TEAR_PUNCH,
+TearFlags.TEAR_ORBIT_ADVANCED,
+TearFlags.TEAR_TURN_HORIZONTAL,
+TearFlags.TEAR_ECOLI,
+TearFlags.TEAR_RIFT,
+TearFlags.TEAR_TELEPORT}
+
 function mod:tearFire_Diltech(t) 
     local d = t:GetData()
     local player = t.SpawnerEntity and (t.SpawnerEntity:ToPlayer()
         or t.SpawnerEntity:ToFamiliar() and t.SpawnerEntity.Player)
-	if player:HasCollectible(Items.DilTeh.ID) then
-	local chance = math.random(1, 57)	
-	if chance == 1 then
-  local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_SLOW)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 2 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_HOMING)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 3 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_POISON)
-              t:Remove()    
-		d.IsDilTeh = true
-    elseif chance == 4 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_SPLIT)
-              t:Remove()    
-		d.IsDilTeh = true	
-	elseif chance == 5 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_FREEZE)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 6 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_GROW)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 7 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_BOOMERANG)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 8 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_PERSISTENT)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 9 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_WIGGLE)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 10 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_MULLIGAN)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 11 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_EXPLOSIVE)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 12 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_CONFUSION)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 13 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_CHARM)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 14 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_ORBIT)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 15 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_WAIT)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 16 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_QUADSPLIT)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 17 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_BOUNCE)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 18 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_FEAR)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 19 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_SHRINK)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 20 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_BURN)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 21 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_KNOCKBACK)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 22 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_SPIRAL)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 23 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_SQUARE)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 24 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_GLOW)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 25 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_GISH)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 26 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_MYSTERIOUS_LIQUID_CREEP)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 27 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_STICKY)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 28 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_CONTINUUM)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 29 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_LIGHT_FROM_HEAVEN)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 30 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_TRACTOR_BEAM)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 31 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_BIG_SPIRAL)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 32 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_BOOGER)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 33 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_ACID)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 34 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_BONE)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 35 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_JACOBS)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 36 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_LASER)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 37 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_POP)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 38 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_ABSORB)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 39 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_HYDROBOUNCE)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 40 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_BURSTSPLIT)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 41 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_PUNCH)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 42 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_ORBIT_ADVANCED)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 43 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_TURN_HORIZONTAL)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 44 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_ECOLI)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 45 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_RIFT)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 46 then
-	local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
-              lazer:AddTearFlags(TearFlags.TEAR_TELEPORT)
-              t:Remove()    
-		d.IsDilTeh = true
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_SLOW)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 47 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_HOMING)
-              t:Remove()    
-		d.IsDilTeh = true
-    elseif chance == 48 then
-    local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_SPLIT)
-              t:Remove()    
-		d.IsDilTeh = true	
-	elseif chance == 49 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_FREEZE)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 50 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_BOOMERANG)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 51 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_EXPLOSIVE)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 52 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_CONFUSION)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 53 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_CHARM)
-              t:Remove()    
-	elseif chance == 54 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_WAIT)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 55 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_FEAR)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 56 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_BURSTSPLIT)
-              t:Remove()    
-		d.IsDilTeh = true
-	elseif chance == 57 then
-	local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
-              lazer:AddTearFlags(TearFlags.TEAR_PUNCH)
-              t:Remove()    
-		d.IsDilTeh = true
-		end
+        if player:HasCollectible(Items.DilTeh.ID) then
+            local rng = player:GetCollectibleRNG(Items.DilTeh.ID)
+            local chance = rng:RandomInt(50)
+        if chance >=25 then
+            local lazer = player:FireTechLaser(t.Position, 0, t.Velocity, false, true, player)
+        else
+            local lazer = player:FireTechXLaser(t.Position, t.Velocity, 50, player)
+        end
+
+        t:Remove()
+	
 	end	
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.LazerColor, CacheFlag.CACHE_TEARCOLOR)
@@ -1733,7 +1517,7 @@ local laserTypes = {
     [1] = CollectibleType.COLLECTIBLE_BRIMSTONE,
     [2] = CollectibleType.COLLECTIBLE_TECHNOLOGY,
     [3] = CollectibleType.COLLECTIBLE_TECHNOLOGY_2,
-    [4] = CollectibleType.CCOLLECTIBLE_TECHNOLOGY_ZERO,
+    [4] = CollectibleType.COLLECTIBLE_TECHNOLOGY_ZERO,
     [5] = CollectibleType.COLLECTIBLE_TECH_5
 }
 
@@ -1746,7 +1530,8 @@ function mod:deliriousTechLaserSwitch(player)
             if data.DelirousTechState ~= nil then
                 hiddenItemManager:Remove(player, data.DelirousTechState, hiddenItemManager.kDefaultGroup)
             end
-            local selectedNum = laserTypes[rng:RandomInt(6)]
+            local num = rng:RandomInt(6)
+            local selectedNum = laserTypes[num]
             data.DelirousTechState = selectedNum
             hiddenItemManager:Add(player, selectedNum)
             if not player:HasCollectible(selectedNum, true) then
@@ -1757,6 +1542,65 @@ function mod:deliriousTechLaserSwitch(player)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.deliriousTechLaserSwitch)
+
+function mod:checkLaser_DelTech(laser)
+    local player = mod:getPlayerFromKnifeLaser(laser)
+    local pdata = player and mod:repmGetPData(player)
+    local data = laser:GetData()
+    local var = laser.Variant
+    local subt = laser.SubType
+    local ignoreLaserVar = ((var == 1 and subt == 3) or var == 5 or var == 12)
+    if laser.Type == EntityType.ENTITY_EFFECT then
+        ignoreLaserVar = false
+    end
+
+    if player and not ignoreLaserVar then
+        if player:HasCollectible(Items.DilTeh.ID) then
+            --local rng = player:GetCollectibleRNG(Items.DilTeh.ID)
+            --if laser.Type == EntityType.ENTITY_EFFECT and laser.Variant == EffectVariant.BRIMSTONE_SWIRL then
+            --end
+            data.RandomizeDelLaserEffect = true
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_LASER_INIT, mod.checkLaser_DelTech)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.checkLaser_DelTech, EffectVariant.BRIMSTONE_BALL)
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT, mod.checkLaser_DelTech, EffectVariant.BRIMSTONE_SWIRL)
+
+function mod:updateLasersPlayer_DelTech(player)
+    local lasers = Isaac.FindByType(EntityType.ENTITY_LASER)
+    local rng = player:GetCollectibleRNG(Items.DilTeh.ID)
+    for i=1, #lasers do
+        local laser = lasers[i]
+        if laser:GetData().RandomizeDelLaserEffect == true then
+            laser:GetData().RandomizeDelLaserEffect = false
+            laser:ToLaser():AddTearFlags(tech1Flags[rng:RandomInt(#tech1Flags)+1])
+        end
+    end
+
+    --local brimballs = Isaac.FindByType(EntityType.ENTITY_EFFECT, EffectVariant.BRIMSTONE_BALL)
+    --for i=1, #brimballs do
+        --local brimball = brimballs[i]
+        --if brimball:GetData().RandomizeDelLaserEffect == true then
+            --brimball:GetData().RandomizeDelLaserEffect = false
+            --brimball:AddTearFlags(tech1Flags[rng:RandomInt(#tech1Flags)+1])
+        --end
+    --end
+
+    --local brimswirls = Isaac.FindByType(EntityType.ENTITY_EFFECT, EffectVariant.BRIMSTONE_SWIRL)
+    --for i=1, #brimswirls do
+        --local brimswirl = brimswirls[i]
+        --if brimswirl:GetData().RandomizeDelLaserEffect == true then
+            --brimswirl:GetData().RandomizeDelLaserEffect = false
+            --brimswirl:AddTearFlags(tech1Flags[rng:RandomInt(#tech1Flags)+1])
+        --end
+    --end
+
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.updateLasersPlayer_DelTech)
+    
+    
+
 
 local Items = {
     Vacum = {
