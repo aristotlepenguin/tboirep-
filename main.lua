@@ -12,6 +12,9 @@ print("Thanks for playing the TBOI REP NEGATIVE [Community Mod] - Currently runn
 local saveTable = {}
 local globalRng = RNG()
 
+local hiddenItemManager = require("lua.lib.hidden_item_manager")
+hiddenItemManager:Init(mod)
+
 
 function mod.GetMenuSaveData()
     if not mod.MenuData then
@@ -1725,6 +1728,35 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
   end
 end)
 
+local laserTypes = {
+    [0] = CollectibleType.COLLECTIBLE_TECH_X,
+    [1] = CollectibleType.COLLECTIBLE_BRIMSTONE,
+    [2] = CollectibleType.COLLECTIBLE_TECHNOLOGY,
+    [3] = CollectibleType.COLLECTIBLE_TECHNOLOGY_2,
+    [4] = CollectibleType.CCOLLECTIBLE_TECHNOLOGY_ZERO,
+    [5] = CollectibleType.COLLECTIBLE_TECH_5
+}
+
+
+function mod:deliriousTechLaserSwitch(player)
+    if player:HasCollectible(Items.DilTeh.ID) and game:GetFrameCount() % 30 == 0 then
+        local rng = player:GetCollectibleRNG(Items.DilTeh.ID)
+        local data = mod:repmGetPData(player)
+        if rng:RandomInt(100) > 94 or data.DelirousTechState == nil then
+            if data.DelirousTechState ~= nil then
+                hiddenItemManager:Remove(player, data.DelirousTechState, hiddenItemManager.kDefaultGroup)
+            end
+            local selectedNum = laserTypes[rng:RandomInt(6)]
+            data.DelirousTechState = selectedNum
+            hiddenItemManager:Add(player, selectedNum)
+            if not player:HasCollectible(selectedNum, true) then
+                local costConfig = config:GetCollectible(selectedNum)
+                player:RemoveCostume(costConfig)
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.deliriousTechLaserSwitch)
 
 local Items = {
     Vacum = {
