@@ -2825,7 +2825,6 @@ function mod:tryOpenDoor_Fro_Polaroid(player)
     if player:GetLastActionTriggers() & ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED == ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED then
         player:AddTrinket(polaroidTrinket)
         local trinkets = Isaac.FindByType(5, 350, 195)
-        print("who?")
         for i, trinket in ipairs(trinkets) do
             trinket:Remove()
             break
