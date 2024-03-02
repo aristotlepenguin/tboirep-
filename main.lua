@@ -2924,7 +2924,7 @@ end
 --MC_PRE_PLAYER_COLLISION
 
 function mod:onCollisionSecret(player, collider, low)
-    if collider.Type == 6 and collider.Variant == 14 and game:GetRoom():GetType() == RoomType.ROOM_BOSSRUSH then
+    if collider.Type == 6 and collider.Variant == 14 and game:GetRoom():GetType() == RoomType.ROOM_SECRET_EXIT then
         FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
         Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
     end
