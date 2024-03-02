@@ -2627,6 +2627,7 @@ end
 --------------------------------------------------------------
 
 local frostType = Isaac.GetPlayerTypeByName("Frosty", false)
+local polaroidTrinket = Isaac.GetTrinketIdByName("Frozen Polaroid")
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
     mod:AnyPlayerDo(function(player)
@@ -2651,13 +2652,13 @@ local blueColor = Color(0.67, 1, 1, 1, 0, 0, 0)
 blueColor:SetColorize(1, 1, 3, 1)
 
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
+    local pdata = mod:repmGetPData(player)
     if player:GetPlayerType() == frostType then
         local frame = game:GetFrameCount()
         if frame % 30 == 0  and frame ~= lastFrame then
             lastFrame = frame
             local room = game:GetRoom()
             if frame % frameBetweenDebuffs == 0 then
-                local pdata = mod:repmGetPData(player)
                 if not room:IsClear() and game:GetRoom():GetType() ~= RoomType.ROOM_BOSS and game:GetRoom():GetType() ~= RoomType.ROOM_MINIBOSS then
                     pdata.FrostDamageDebuff = (pdata.FrostDamageDebuff or 0) + 1
                 elseif room:IsClear() then
@@ -2668,6 +2669,25 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
             end
         end
     end
+    if pdata.HoldingFrozenPolaroid ~= player:HasTrinket(polaroidTrinket) then
+        
+        if player:HasTrinket(polaroidTrinket) then
+            hiddenItemManager:Add(player, CollectibleType.COLLECTIBLE_MORE_OPTIONS)
+            hiddenItemManager:Add(player, CollectibleType.COLLECTIBLE_STEAM_SALE)
+            local optionsConfig = config:GetCollectible(CollectibleType.COLLECTIBLE_MORE_OPTIONS)
+            local steamConfig = config:GetCollectible(CollectibleType.COLLECTIBLE_STEAM_SALE)
+            player:RemoveCostume(optionsConfig)
+            player:RemoveCostume(steamConfig)
+        elseif pdata.HoldingFrozenPolaroid == nil and player:HasTrinket(polaroidTrinket) == false then
+            pdata.HoldingFrozenPolaroid = false -- redundant, i know
+        else
+            
+            hiddenItemManager:Remove(player, CollectibleType.COLLECTIBLE_MORE_OPTIONS, hiddenItemManager.kDefaultGroup)
+            hiddenItemManager:Remove(player, CollectibleType.COLLECTIBLE_STEAM_SALE, hiddenItemManager.kDefaultGroup)
+        end
+        pdata.HoldingFrozenPolaroid = player:HasTrinket(polaroidTrinket)
+    end
+
 end)
 
 
@@ -2758,7 +2778,6 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.Anm)
 --FROZEN POLAROID
 --------------------------------------------------------------------------
 
-local polaroidTrinket = Isaac.GetTrinketIdByName("Frozen Polaroid")
 
 
 function mod:stickyTrinket(pickup, collider, low)
