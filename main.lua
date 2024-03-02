@@ -2822,9 +2822,18 @@ function mod:tryOpenDoor_Fro_Polaroid(player)
             saveTable.repM_FrostyUnlock = true
         end
     end
+    if player:GetLastActionTriggers() & ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED == ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED then
+        player:AddTrinket(polaroidTrinket)
+        local trinkets = Isaac.FindByType(5, 350, 195)
+        print("who?")
+        for i, trinket in ipairs(trinkets) do
+            trinket:Remove()
+            break
+        end -- not a great solution but let's see
+    end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.tryOpenDoor_Fro_Polaroid)
-
+--5 350 195
 function mod:DebugText()
     local player = Isaac.GetPlayer(0) --this one is OK
     local coords = (player.Position):Distance(Vector(320, 150))
