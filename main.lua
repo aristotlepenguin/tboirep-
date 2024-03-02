@@ -2681,7 +2681,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
         elseif pdata.HoldingFrozenPolaroid == nil and player:HasTrinket(polaroidTrinket) == false then
             pdata.HoldingFrozenPolaroid = false -- redundant, i know
         else
-            
+
             hiddenItemManager:Remove(player, CollectibleType.COLLECTIBLE_MORE_OPTIONS, hiddenItemManager.kDefaultGroup)
             hiddenItemManager:Remove(player, CollectibleType.COLLECTIBLE_STEAM_SALE, hiddenItemManager.kDefaultGroup)
         end
@@ -2844,7 +2844,7 @@ function mod:OnEntitySpawn_Polar(npc)
             chosenPlayer = player
         end
     end)
-    if player ~= nil then
+    if chosenPlayer ~= nil then
         if not npc:IsChampion() and not npc:IsBoss() and globalRng:RandomInt(8) == 1 then
             npc:MakeChampion(globalRng:GetSeed())
         end
