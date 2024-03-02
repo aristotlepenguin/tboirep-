@@ -2708,7 +2708,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function(_)
         local entities = Isaac.GetRoomEntities()
         for i=1, #entities do
             local entity = entities[i]
-            if entity:IsVulnerableEnemy() then
+            if entity:IsVulnerableEnemy() and not entity:IsBoss() then
                 if not entity:GetData().RepM_Frosty_FreezePoint then
                     local num = frostRNG:RandomInt(maxFrameFreeze-minFrameFreeze)
                     num = num + minFrameFreeze
