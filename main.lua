@@ -12,6 +12,9 @@ print("Thanks for playing the TBOI REP NEGATIVE [Community Mod] - Currently runn
 local saveTable = {}
 local globalRng = RNG()
 
+include("lua/lib/customhealthapi/core.lua")
+include("lua/lib/customhealth.lua")
+
 local hiddenItemManager = require("lua.lib.hidden_item_manager")
 hiddenItemManager:Init(mod)
 
