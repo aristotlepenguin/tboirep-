@@ -235,6 +235,21 @@ CustomHealthAPI.Library.RegisterSoulHealth(
         }
     }
 )
+local dupesOff = false
+CustomHealthAPI.Library.AddCallback("RepentanceMinus", CustomHealthAPI.Enums.Callbacks.POST_HEALTH_DAMAGED, 0, function(player, flags, key, hpDamaged, wasDepleted, wasLastDamaged)
+	if key == "HEART_ICE" then
+        local pdata = mod:repmGetPData(player)
+        pdata.isIceheartCrept = true
+    end
+    for i=0, 360, 45 do
+        local angle = Vector.FromAngle(i) * 8
+        local tear = player:FireTear(player.Position, angle, false, true, false, player, 1)
+        --tear:ClearTearFlags()
+        player.TearFlags = BitSet128(0,0)
+        tear:AddTearFlags(TearFlags.TEAR_ICE)
+        tear:ChangeVariant(41)
+    end
+end)
 
 
 
