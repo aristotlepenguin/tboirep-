@@ -2661,7 +2661,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
         if frame % 30 == 0  and frame ~= lastFrame then
             lastFrame = frame
             local room = game:GetRoom()
-            if frame % frameBetweenDebuffs == 0 then
+            if frame % frameBetweenDebuffs == 0 and not game:IsGreedMode() then
                 if not room:IsClear() and game:GetRoom():GetType() ~= RoomType.ROOM_BOSS and game:GetRoom():GetType() ~= RoomType.ROOM_MINIBOSS then
                     pdata.FrostDamageDebuff = (pdata.FrostDamageDebuff or 0) + 1
                 elseif room:IsClear() then
@@ -2711,7 +2711,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function(_)
         local entities = Isaac.GetRoomEntities()
         for i=1, #entities do
             local entity = entities[i]
-            if entity:IsVulnerableEnemy() and not entity:IsBoss() then
+            if entity:IsVulnerableEnemy() and not entity:IsBoss() and (entity:GetEntityFlags() & EntityFlag.FLAG_CHARM ~= EntityFlag.FLAG_CHARM) and (entity:GetEntityFlags() & EntityFlag.FLAG_FRIENDLY ~= EntityFlag.FLAG_FRIENDLY) then
                 if not entity:GetData().RepM_Frosty_FreezePoint then
                     local num = frostRNG:RandomInt(maxFrameFreeze-minFrameFreeze)
                     num = num + minFrameFreeze
@@ -2739,6 +2739,9 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, player, cacheflag)
     local pdata = mod:repmGetPData(player)
     if cacheflag == CacheFlag.CACHE_DAMAGE then
         local damageDebuff = (pdata.FrostDamageDebuff or 0)
+        if game:IsGreedMode() then
+            damageDebuff = damageDebuff / 2
+        end
         player.Damage = player.Damage - (damageDebuff * damageDownPerDebuff)
     end
 end)
@@ -2987,7 +2990,18 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.disableCreepRoom)
 
 ----------------------------------------------------------
 
-
+function mod:onGreedUpdate_RepM()
+    if game:IsGreedMode() and saveTable.REPM_GreedWave ~= game:GetLevel().GreedModeWave then
+        mod:AnyPlayerDo(function(player)
+            if player:GetPlayerType() == frostType then
+                local pdata = repmGetPData(player)
+                pdata.FrostDamageDebuff = (pdata.FrostDamageDebuff or 0) + 1
+            end
+        end)
+        saveTable.REPM_GreedWave = game:GetLevel().GreedModeWave
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.onGreedUpdate_JC)
 
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
