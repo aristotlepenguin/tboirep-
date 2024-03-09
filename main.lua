@@ -3027,7 +3027,7 @@ end
 
 function mod:fountUpdate()
 	local founts = Isaac.FindByType(EntityType.ENTITY_SLOT, fountainType)
-    
+    local anyInRadius = false
 	for _,fount in pairs(founts) do
 		if fount:GetSprite():IsFinished("Initiate") then fount:GetSprite():Play("Wiggle")	end
 		if fount:GetSprite():IsFinished("Wiggle") then fount:GetSprite():Play("Prize") end
@@ -3067,7 +3067,20 @@ function mod:fountUpdate()
 		if fount:GetSprite():IsEventTriggered("Disappear") then
 			fount.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
 		end
+
+        local players = Isaac.FindInRadius(fount.Position, 250)
+        for i, player in ipairs(players) do
+            if player:ToPlayer() ~= nil then
+                anyInRadius = true
+                if not sfx:IsPlaying(SoundEffect.SOUND_WATER_FLOW_LOOP) then
+                    sfx:Play(SoundEffect.SOUND_WATER_FLOW_LOOP, 0.5, true)
+                end
+            end   
+        end
 	end
+    if anyInRadius == false and sfx:IsPlaying(SoundEffect.SOUND_WATER_FLOW_LOOP) then
+        sfx:Stop(SoundEffect.SOUND_WATER_FLOW_LOOP)
+    end
 	local explosions = Isaac.FindByType(EntityType.ENTITY_EFFECT, EffectVariant.BOMB_EXPLOSION)
 	for _,plosion in pairs(explosions) do
 		local frame = plosion:GetSprite():GetFrame()
