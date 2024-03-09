@@ -3001,8 +3001,111 @@ function mod:onGreedUpdate_RepM()
         saveTable.REPM_GreedWave = game:GetLevel().GreedModeWave
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.onGreedUpdate_JC)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.onGreedUpdate_RepM)
 
+----------------------------------------------------------
+--FOUNTAIN
+----------------------------------------------------------
+local fountainType = Isaac.GetEntityVariantByName("Fountain of Confession")
+
+local function playerToNum(player)
+	for num = 0, game:GetNumPlayers()-1 do
+		if GetPtrHash(player) == GetPtrHash(Isaac.GetPlayer(num)) then return num end
+	end
+end
+
+local function killFount(entity)
+    print("die")
+end
+
+local function numToPlayer(num)
+	for i = 0, game:GetNumPlayers()-1 do
+        local player = Isaac.GetPlayer(i)
+		if GetPtrHash(player) == GetPtrHash(Isaac.GetPlayer(num)) then return player end
+	end
+end
+
+function mod:fountUpdate()
+	local founts = Isaac.FindByType(EntityType.ENTITY_SLOT, fountainType)
+    
+	for _,fount in pairs(founts) do
+		if fount:GetSprite():IsFinished("Initiate") then fount:GetSprite():Play("Wiggle")	end
+		if fount:GetSprite():IsFinished("Wiggle") then fount:GetSprite():Play("Prize") end
+		if fount:GetSprite():IsFinished("Prize") then
+            local outcome = fount:GetData().Slot_Outcome or 99
+            if outcome <= 15 then
+                fount:GetSprite():Play("Inert")
+            else
+                fount:GetSprite():Play("Idle")
+            end
+			fount:GetData()["Playing Player"] = nil
+		end
+		if fount:GetSprite():IsFinished("Teleport") then
+			fount:Remove()
+		end
+
+        if fount:GetSprite():IsEventTriggered("Prize") then
+            local outcome = fount:GetData().Slot_Outcome or 99
+            if outcome <= 5 then
+                sfx:Play(SoundEffect.SOUND_SLOTSPAWN, 1.0, 0, false, 1.0)
+                Isaac.Spawn(5, 300, 20, fount.Position, Vector(0, 1), fount)
+            elseif outcome <= 10 then
+                local player = mod:numToPlayer(fount:GetData()["Playing Player"])
+                player:AddSoulHearts(2)
+                SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
+                player:AnimateHappy()
+            elseif outcome <= 15 then
+                local pdata = mod:repmGetPData(player)
+                pdata.repMBonusDamage = (pdata.repMBonusDamage or 0) + 1
+                player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)  
+                player:EvaluateItems() 
+                player:AnimateHappy()
+                SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
+            end
+			
+		end
+		if fount:GetSprite():IsEventTriggered("Disappear") then
+			fount.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
+		end
+	end
+	local explosions = Isaac.FindByType(EntityType.ENTITY_EFFECT, EffectVariant.BOMB_EXPLOSION)
+	for _,plosion in pairs(explosions) do
+		local frame = plosion:GetSprite():GetFrame()
+		if frame < 3 then -- I'm afraid of 60 vs 30 breaking an exact check
+			local size = plosion.SpriteScale.X -- default is 1, can be increased
+			local nearby = Isaac.FindInRadius(plosion.Position, 75*size)
+			for _,v in pairs(nearby) do
+				killFount(v)
+			end
+		end
+	end
+end
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.fountUpdate)
+
+
+function mod:donationFount(player, fount, low)
+	if fount.Type == EntityType.ENTITY_SLOT and fount.Variant == fountainType then
+		if fount:GetSprite():IsPlaying("Idle") and player:GetNumCoins() > 4 then
+			player:AddCoins(-5)
+			SFXManager():Play(SoundEffect.SOUND_SCAMPER, 1.0, 0, false, 1.0)
+			fount:GetSprite():Play("Initiate")
+			fount:GetData()["Playing Player"] = playerToNum(player)
+			if player:GetPlayerType() == PlayerType.PLAYER_THESOUL_B then
+				fount:GetData()["Playing Player"] = playerToNum(player:GetMainTwin())
+			end
+            fount:GetData().Slot_Outcome = globalRng:RandomInt(100)
+		end
+	end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, mod.donationFount)
+
+function mod:updateCache_Fountain(player, cacheFlag)
+    if cacheFlag == CacheFlag.CACHE_DAMAGE then
+        local pdata = mod:repmGetPData(player)
+        player.Damage = player.Damage + (pdata.repMBonusDamage or 0)
+	end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Fountain)
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------
