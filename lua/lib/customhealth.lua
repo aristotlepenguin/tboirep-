@@ -265,17 +265,17 @@ mod:AddCallback(ModCallbacks.MC_POST_TEAR_INIT, function(_, Tear)
 
 		for _, familiar in ipairs(familiars) do
 			if familiar.Variant == FamiliarVariant.BLOOD_BABY then
-				if familiar.SubType == mod.CustomFamiliars.ClotSubtype.DAUNTLESS then
-                    Tear:GetData().isDauntlessClot = true
-                end
+				--if familiar.SubType == mod.CustomFamiliars.ClotSubtype.DAUNTLESS then
+               --     Tear:GetData().isDauntlessClot = true
+                --end
 			end
 		end
 	elseif Tear.SpawnerEntity and Tear.SpawnerEntity.Type == EntityType.ENTITY_FAMILIAR then
 		local familiar = Tear.SpawnerEntity:ToFamiliar()
 		if familiar.Variant == FamiliarVariant.BLOOD_BABY then
-			if familiar.SubType == mod.CustomFamiliars.ClotSubtype.DAUNTLESS then
-                Tear:GetData().isDauntlessClot = true
-            end
+			--if familiar.SubType == mod.CustomFamiliars.ClotSubtype.DAUNTLESS then
+            --    Tear:GetData().isDauntlessClot = true
+            --end
 		end
 	end
 end)
