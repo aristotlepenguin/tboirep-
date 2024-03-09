@@ -3007,6 +3007,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.onGreedUpdate_RepM)
 --FOUNTAIN
 ----------------------------------------------------------
 local fountainType = Isaac.GetEntityVariantByName("Fountain of Confession")
+local fountainSound = Isaac.GetSoundIdByName("fountain")
 
 local function playerToNum(player)
 	for num = 0, game:GetNumPlayers()-1 do
@@ -3024,6 +3025,8 @@ local function numToPlayer(num)
 		if GetPtrHash(player) == GetPtrHash(Isaac.GetPlayer(num)) then return player end
 	end
 end
+
+local isFountPlaying = false
 
 function mod:fountUpdate()
 	local founts = Isaac.FindByType(EntityType.ENTITY_SLOT, fountainType)
@@ -3068,18 +3071,22 @@ function mod:fountUpdate()
 			fount.EntityCollisionClass = EntityCollisionClass.ENTCOLL_NONE
 		end
 
-        local players = Isaac.FindInRadius(fount.Position, 250)
+        local players = Isaac.FindInRadius(fount.Position, 100)
         for i, player in ipairs(players) do
             if player:ToPlayer() ~= nil then
                 anyInRadius = true
-                if not sfx:IsPlaying(SoundEffect.SOUND_WATER_FLOW_LOOP) then
-                    sfx:Play(SoundEffect.SOUND_WATER_FLOW_LOOP, 0.5, true)
+                if not isFountPlaying then
+                    isFountPlaying = true
+                    sfx:Play(fountainSound, 1, 30, true)
+                    print("on")
                 end
             end   
         end
 	end
-    if anyInRadius == false and sfx:IsPlaying(SoundEffect.SOUND_WATER_FLOW_LOOP) then
-        sfx:Stop(SoundEffect.SOUND_WATER_FLOW_LOOP)
+    if anyInRadius == false and isFountPlaying then
+        isFountPlaying = false
+        sfx:Stop(fountainSound)
+        print("off")
     end
 	local explosions = Isaac.FindByType(EntityType.ENTITY_EFFECT, EffectVariant.BOMB_EXPLOSION)
 	for _,plosion in pairs(explosions) do

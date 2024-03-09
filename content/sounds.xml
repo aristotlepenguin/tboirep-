@@ -2,4 +2,7 @@
 	<sound name="vhs">
 		<sample weight="1" path="vhs.wav" />
 	</sound>
+	<sound name="fountain">
+		<sample weight="1" path="fountain_ambience.wav" />
+	</sound>
 </sounds>
