@@ -460,9 +460,9 @@ function Sim:onCache(player, cacheFlag) -- I do mean everywhere!
         if cacheFlag == CacheFlag.CACHE_TEARFLAG then
             player.TearFlags = player.TearFlags | Sim.TEARFLAG
         end
-        if cacheFlag == CacheFlag.CACHE_TEARCOLOR then
-            player.TearColor = Sim.TEARCOLOR
-        end
+        --if cacheFlag == CacheFlag.CACHE_TEARCOLOR then
+            --player.TearColor = Sim.TEARCOLOR
+        --end
     end
 end
  
