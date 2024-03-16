@@ -3056,7 +3056,7 @@ function mod:fountUpdate()
                 sfx:Play(SoundEffect.SOUND_LUCKYPICKUP, 1.0, 0, false, 1.0)
                 Isaac.Spawn(5, 300, 20, fount.Position, Vector(0, 1), fount)
             elseif outcome <= 15 then
-                --local player = mod:numToPlayer(fount:GetData()["Playing Player"])
+                local player = mod:numToPlayer(fount:GetData()["Playing Player"])
                 --player:AddSoulHearts(2)
                 --SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
                 --player:AnimateHappy()
@@ -3067,6 +3067,7 @@ function mod:fountUpdate()
                 player:AnimateHappy()
                 SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
             else
+                local player = mod:numToPlayer(fount:GetData()["Playing Player"])
                 local pdata = mod:repmGetPData(player)
                 pdata.repMBonusLuck = (pdata.repMBonusLuck or 0) + 0.5
                 player:AddCacheFlags(CacheFlag.CACHE_LUCK)  
