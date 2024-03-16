@@ -3015,8 +3015,8 @@ local function playerToNum(player)
 	end
 end
 
-local function killFount(entity)
-    print("die")
+local function killFount(fount)
+    fount:GetSprite():Play("Broken")
 end
 
 local function numToPlayer(num)
@@ -3035,9 +3035,12 @@ function mod:fountUpdate()
 		if fount:GetSprite():IsFinished("Initiate") then fount:GetSprite():Play("Wiggle")	end
 		if fount:GetSprite():IsFinished("Wiggle") then fount:GetSprite():Play("Prize") end
 		if fount:GetSprite():IsFinished("Prize") then
-            local outcome = fount:GetData().Slot_Outcome or 99
-            if outcome <= 15 then
-                fount:GetSprite():Play("Inert")
+            local dropRNG = fount:GetDropRNG()
+            local breakOutcome = dropRNG:RandomInt(100)
+            if breakOutcome <= 15 then
+                fount:GetSprite():Play("Broken")
+                sfx:Play(SoundEffect.SOUND_BOSS1_EXPLOSIONS)
+                fount:Die()
             else
                 fount:GetSprite():Play("Idle")
             end
@@ -3050,17 +3053,23 @@ function mod:fountUpdate()
         if fount:GetSprite():IsEventTriggered("Prize") then
             local outcome = fount:GetData().Slot_Outcome or 99
             if outcome <= 5 then
-                sfx:Play(SoundEffect.SOUND_SLOTSPAWN, 1.0, 0, false, 1.0)
+                sfx:Play(SoundEffect.SOUND_LUCKYPICKUP, 1.0, 0, false, 1.0)
                 Isaac.Spawn(5, 300, 20, fount.Position, Vector(0, 1), fount)
-            elseif outcome <= 10 then
-                local player = mod:numToPlayer(fount:GetData()["Playing Player"])
-                player:AddSoulHearts(2)
-                SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
-                player:AnimateHappy()
             elseif outcome <= 15 then
+                --local player = mod:numToPlayer(fount:GetData()["Playing Player"])
+                --player:AddSoulHearts(2)
+                --SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
+                --player:AnimateHappy()
                 local pdata = mod:repmGetPData(player)
-                pdata.repMBonusDamage = (pdata.repMBonusDamage or 0) + 1
+                pdata.repMBonusDamage = (pdata.repMBonusDamage or 0) + 0.5
                 player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)  
+                player:EvaluateItems() 
+                player:AnimateHappy()
+                SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
+            else
+                local pdata = mod:repmGetPData(player)
+                pdata.repMBonusLuck = (pdata.repMBonusLuck or 0) + 0.5
+                player:AddCacheFlags(CacheFlag.CACHE_LUCK)  
                 player:EvaluateItems() 
                 player:AnimateHappy()
                 SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
@@ -3073,20 +3082,18 @@ function mod:fountUpdate()
 
         local players = Isaac.FindInRadius(fount.Position, 100)
         for i, player in ipairs(players) do
-            if player:ToPlayer() ~= nil then
+            if player:ToPlayer() ~= nil and fount:GetSprite():GetAnimation() ~= "Broken" then
                 anyInRadius = true
                 if not isFountPlaying then
                     isFountPlaying = true
                     sfx:Play(fountainSound, 1, 30, true)
-                    print("on")
                 end
-            end   
+            end
         end
 	end
     if anyInRadius == false and isFountPlaying then
         isFountPlaying = false
         sfx:Stop(fountainSound)
-        print("off")
     end
 	local explosions = Isaac.FindByType(EntityType.ENTITY_EFFECT, EffectVariant.BOMB_EXPLOSION)
 	for _,plosion in pairs(explosions) do
@@ -3105,7 +3112,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.fountUpdate)
 
 function mod:donationFount(player, fount, low)
 	if fount.Type == EntityType.ENTITY_SLOT and fount.Variant == fountainType then
-		if fount:GetSprite():IsPlaying("Idle") and player:GetNumCoins() > 4 then
+		if fount:GetSprite():IsPlaying("Idle") and player:GetNumCoins() > 4 and (not REPENTOGON or fount:ToSlot():GetState() ~= -1) then
 			player:AddCoins(-5)
 			SFXManager():Play(SoundEffect.SOUND_SCAMPER, 1.0, 0, false, 1.0)
 			fount:GetSprite():Play("Initiate")
@@ -3113,7 +3120,8 @@ function mod:donationFount(player, fount, low)
 			if player:GetPlayerType() == PlayerType.PLAYER_THESOUL_B then
 				fount:GetData()["Playing Player"] = playerToNum(player:GetMainTwin())
 			end
-            fount:GetData().Slot_Outcome = globalRng:RandomInt(100)
+            local droprng = fount:GetDropRNG()
+            fount:GetData().Slot_Outcome = droprng:RandomInt(100)
 		end
 	end
 end
@@ -3123,7 +3131,10 @@ function mod:updateCache_Fountain(player, cacheFlag)
     if cacheFlag == CacheFlag.CACHE_DAMAGE then
         local pdata = mod:repmGetPData(player)
         player.Damage = player.Damage + (pdata.repMBonusDamage or 0)
-	end
+    elseif cacheFlag == CacheFlag.CACHE_LUCK then
+        local pdata = mod:repmGetPData(player)
+        player.Luck = player.Luck + (pdata.repMBonusLuck or 0)
+    end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Fountain)
 
