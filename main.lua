@@ -3016,10 +3016,10 @@ local function playerToNum(player)
 end
 
 local function killFount(fount)
-    fount:GetSprite():Play("Broken")
+    fount:GetSprite():Play("Death")
 end
 
-local function numToPlayer(num)
+function mod:numToPlayer(num)
 	for i = 0, game:GetNumPlayers()-1 do
         local player = Isaac.GetPlayer(i)
 		if GetPtrHash(player) == GetPtrHash(Isaac.GetPlayer(num)) then return player end
@@ -3034,21 +3034,25 @@ function mod:fountUpdate()
 	for _,fount in pairs(founts) do
 		if fount:GetSprite():IsFinished("Initiate") then fount:GetSprite():Play("Wiggle")	end
 		if fount:GetSprite():IsFinished("Wiggle") then fount:GetSprite():Play("Prize") end
+        if fount:GetSprite():IsFinished("Death") then 
+            fount:GetSprite():Play("Broken") 
+            fount:Die()
+        end
 		if fount:GetSprite():IsFinished("Prize") then
             local dropRNG = fount:GetDropRNG()
             local breakOutcome = dropRNG:RandomInt(100)
             if breakOutcome <= 15 then
-                fount:GetSprite():Play("Broken")
-                sfx:Play(SoundEffect.SOUND_BOSS1_EXPLOSIONS)
-                fount:Die()
+                fount:GetSprite():Play("Death")
             else
                 fount:GetSprite():Play("Idle")
             end
 			fount:GetData()["Playing Player"] = nil
 		end
-		if fount:GetSprite():IsFinished("Teleport") then
-			fount:Remove()
-		end
+
+        if fount:GetSprite():IsEventTriggered("Explosion") then
+            local exp = Isaac.Spawn(1000, 1, 0, fount.Position, Vector.Zero, fount)
+            exp:GetData().FountCaused_REPM = true
+        end 
 
         if fount:GetSprite():IsEventTriggered("Prize") then
             local outcome = fount:GetData().Slot_Outcome or 99
@@ -3065,7 +3069,7 @@ function mod:fountUpdate()
                 player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)  
                 player:EvaluateItems() 
                 player:AnimateHappy()
-                SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
+                sfx:Play(SoundEffect.SOUND_THUMBSUP, 2)
             else
                 local player = mod:numToPlayer(fount:GetData()["Playing Player"])
                 local pdata = mod:repmGetPData(player)
@@ -3073,7 +3077,7 @@ function mod:fountUpdate()
                 player:AddCacheFlags(CacheFlag.CACHE_LUCK)  
                 player:EvaluateItems() 
                 player:AnimateHappy()
-                SfxManager:Play(SoundEffect.SOUND_THUMBSUP, 2)
+                sfx:Play(SoundEffect.SOUND_THUMBSUP, 2)
             end
 			
 		end
@@ -3103,7 +3107,13 @@ function mod:fountUpdate()
 			local size = plosion.SpriteScale.X -- default is 1, can be increased
 			local nearby = Isaac.FindInRadius(plosion.Position, 75*size)
 			for _,v in pairs(nearby) do
-				killFount(v)
+                if v.Type == EntityType.ENTITY_SLOT and 
+                    v.Variant == fountainType and 
+                    v:GetSprite():GetAnimation() ~= "Broken" and
+                    v:GetSprite():GetAnimation() ~= "Death" and
+                    plosion:GetData().FountCaused_REPM ~= true then
+                        killFount(v)
+                end
 			end
 		end
 	end
