@@ -3149,6 +3149,69 @@ function mod:updateCache_Fountain(player, cacheFlag)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Fountain)
 
+----------------------------------------------------------
+--RED LIGHT GREEN LIGHT
+----------------------------------------------------------
+local redLightChallenge = Isaac.GetChallengeIdByName("Traffic Light")
+
+function mod:trafficRender()
+    if Isaac.GetChallenge() == redLightChallenge then
+        if not saveTable.RedLightSprite then
+            saveTable.RedLightSprite = Sprite()
+            saveTable.RedLightSprite:Load("gfx/trafficlight.anm2", true)
+            saveTable.RedLightSprite:LoadGraphics()
+        end
+        if not saveTable.RedLightSign then
+            return
+        end
+        if saveTable.RedLightSprite:GetAnimation() ~= mod.RedLightSign then
+            saveTable.RedLightSprite:Play(saveTable.RedLightSign)
+        end
+        local horiz, vert
+        if REPENTOGON then -- probably a useless split but maybe we'll make this work with the map size later
+            horiz = 115
+            vert = 45
+        else
+            horiz = 115
+            vert = 45
+        end
+        
+        saveTable.RedLightSprite:Render(Vector(horiz, vert))
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.trafficRender)
+
+local saveTimer
+function mod:changeLights()
+    local frame = game:GetFrameCount()
+    if Isaac.GetChallenge() == redLightChallenge  then
+        if not saveTimer then
+            saveTimer = 0
+            if not saveTable.RedLightSign or saveTable.RedLightSign == "GreenLight" then
+                saveTable.RedLightSign = "RedLight"
+            elseif saveTable.RedLightSign == "YellowLight" then
+                saveTable.RedLightSign = "GreenLight"
+            else
+                saveTable.RedLightSign = "YellowLight"
+            end
+        end
+        if frame > saveTimer then
+            if saveTable.RedLightSign == "RedLight" then
+                saveTimer = frame + globalRng:RandomInt(1350) + 300
+                saveTable.RedLightSign = "GreenLight"
+            elseif saveTable.RedLightSign == "YellowLight" then
+                saveTimer = frame + globalRng:RandomInt(300) + 30
+                saveTable.RedLightSign = "RedLight"
+            else
+                saveTimer = frame + 30
+                saveTable.RedLightSign = "YellowLight"    
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.changeLights)
+
+
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------
 --EID, keep this at the bottom!!

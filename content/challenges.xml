@@ -1,5 +1,5 @@
 <challenges version="1">
     <challenge name="Only AXE!!" endstage="6" altpath="false" roomfilter="4" difficulty="1" startingitems="153,62,157,486,100" playertype="41" canshoot="false" soulhp="6" />
     <challenge name="Devil retribution" endstage="8" altpath="false" roomfilter="4" difficulty="1" startingitems="742,742,742,247,164" playertype="7" canshoot="false" blackhp="4" />
-    <challenge name="Red Light Green Light" endstage="6" altpath="false" roomfilter="0" difficulty="1" playertype="0" />
+    <challenge name="Traffic Light" endstage="6" altpath="false" roomfilter="0" difficulty="1" playertype="0" />
 </challenges>
