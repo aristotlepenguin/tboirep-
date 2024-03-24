@@ -382,4 +382,19 @@ mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, function(_, pickup, collid
 end, PickupVariant.PICKUP_HEART)
 
 
+local frostType = Isaac.GetPlayerTypeByName("Frosty", false)
 
+
+function mod:onFrostyInit(player)
+    if player:GetPlayerType() == frostType then
+        CustomHealthAPI.Library.AddHealth(player, HeartKey[mod.HEART_ICE], 5, true)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.onFrostyInit)
+
+local numbHeartItem = Isaac.GetItemIdByName("Numb Heart")
+function mod:onUseNumbHeart(collectible, thisRng, player, useflags, activeslot, customvardata)
+    CustomHealthAPI.Library.AddHealth(player, HeartKey[mod.HEART_ICE], 2, true)
+    sfx:Play(SoundEffect.SOUND_FREEZE, 1, 0, false, 1.0)
+end
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.onUseNumbHeart, numbHeartItem)

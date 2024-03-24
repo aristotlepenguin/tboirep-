@@ -2105,9 +2105,6 @@ function mod:onCache_Minus(player, cacheFlag) -- I do mean everywhere!
         if cacheFlag == CacheFlag.CACHE_TEARFLAG then
             player.TearFlags = player.TearFlags | Minusaac.TEARFLAG
         end
-        if cacheFlag == CacheFlag.CACHE_TEARCOLOR then
-            player.TearColor = Minusaac.TEARCOLOR
-        end
     end
 end
  
@@ -2828,7 +2825,7 @@ function mod:tryOpenDoor_Fro_Polaroid(player)
             saveTable.repM_FrostyUnlock = true
         end
     end
-    if player:GetLastActionTriggers() & ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED == ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED then
+    if player:HasTrinket(polaroidTrinket) and player:GetLastActionTriggers() & ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED == ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED then
         player:AddTrinket(polaroidTrinket)
         local trinkets = Isaac.FindByType(5, 350, 195)
         for i, trinket in ipairs(trinkets) do
@@ -2887,15 +2884,17 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.OnTakeHit_Polar, EntityType
 ------------------------------------------------------------------
 local iceCard = Isaac.GetCardIdByName("Icicle")
 
+
 function mod:OnBossDefeat_Frosty(rng, spawn)
     if REPENTOGON then
         FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
         if not Isaac.GetPersistentGameData():Unlocked(FrostyAchId) and
         game:GetRoom():GetType() == RoomType.ROOM_BOSS and
         game:GetLevel():GetStage() == 1 and
-        game:GetLevel():GetStageType() <= 2 then
+        game:GetLevel():GetStageType() <= 2 and saveTable.repm_picSpawned ~= true then
             local spawnPos = game:GetRoom():FindFreePickupSpawnPosition(game:GetRoom():GetCenterPos())
             Isaac.Spawn(5, 350, polaroidTrinket, spawnPos, Vector.Zero, nil)
+            saveTable.repm_picSpawned = true
         end
     end
     saveTable.Repm_Iced = false
@@ -3182,6 +3181,12 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.trafficRender)
 
 local saveTimer
+
+local function IsMoving(player)
+    local index = player.ControllerIndex
+    return Input.IsActionPressed(ButtonAction.ACTION_LEFT) or Input.IsActionPressed(ButtonAction.ACTION_RIGHT) or Input.IsActionPressed(ButtonAction.ACTION_UP) or Input.IsActionPressed(ButtonAction.ACTION_DOWN)
+end
+
 function mod:changeLights()
     local frame = game:GetFrameCount()
     if Isaac.GetChallenge() == redLightChallenge  then
@@ -3207,6 +3212,18 @@ function mod:changeLights()
                 saveTable.RedLightSign = "YellowLight"    
             end
         end
+        mod:AnyPlayerDo(function(player)
+            if saveTable.RedLightSign == "RedLight" and IsMoving(player) then
+               local pdata = mod:repmGetPData(player)
+               if not pdata.redLightFrame or pdata.redLightFrame < frame then
+                    pdata.redLightFrame = frame + 30
+                    player:TakeDamage(1, 0, EntityRef(player), 2)
+               end
+            end
+            if frame == 0 then
+                pdata.redLightFrame = nil
+            end
+        end)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.changeLights)

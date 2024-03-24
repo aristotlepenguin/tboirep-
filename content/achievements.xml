@@ -2,4 +2,7 @@
 
 	<!-- characters -->
 	<achievement name="Frosty" text='' gfx="achievementfrosty.png" />
+	<achievement name="FrostySatan" text='' gfx="achievementfrostysatan.png" />
+	<achievement name="FrozenHearts" text='' gfx="achievementfrozenhearts.png" />
+	<achievement name="improved_cards" text='' gfx="achievementimproved_cards.png" />
 </achievements>
