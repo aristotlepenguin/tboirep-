@@ -45,6 +45,8 @@
 	<passive name="Rot" description="it stinks" gfx="rot.png" />
 	<familiar name="Frozen Flies" description="They give you the cold shoulder" gfx="frozen_flys.png" />
 	<active name="Numb Heart" description="Reusable apathy" gfx="Numb Heart.png" maxcharges="6" />
+	<passive name="Friendly Rocks" description="I loves my rocks!" gfx="Friendly Rocks.png" quality = "1"/>
+	<passive name="Like" description="Farm for them" gfx="Like.png"/>
 	<passive id="234" name="test" description="it oozes..." gfx="leaky bucket.png" />
 <!-- Trinkets -->
 	<trinket name="micro amplifier" description="STOP!" gfx="microamplifier.png" />

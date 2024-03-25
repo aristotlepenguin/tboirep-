@@ -3184,7 +3184,7 @@ local saveTimer
 
 local function IsMoving(player)
     local index = player.ControllerIndex
-    return Input.IsActionPressed(ButtonAction.ACTION_LEFT) or Input.IsActionPressed(ButtonAction.ACTION_RIGHT) or Input.IsActionPressed(ButtonAction.ACTION_UP) or Input.IsActionPressed(ButtonAction.ACTION_DOWN)
+    return Input.IsActionPressed(ButtonAction.ACTION_LEFT, index) or Input.IsActionPressed(ButtonAction.ACTION_RIGHT, index) or Input.IsActionPressed(ButtonAction.ACTION_UP, index) or Input.IsActionPressed(ButtonAction.ACTION_DOWN, index)
 end
 
 function mod:changeLights()
@@ -3228,6 +3228,107 @@ function mod:changeLights()
 end
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.changeLights)
 
+----------------------------------------------------------
+--FRIENDLY ROCKS
+----------------------------------------------------------
+local rockType = Isaac.GetItemIdByName("Friendly Rocks")
+
+function mod:onRockBreak(rockSubtype, position) --probably could make a callback but nah
+    local hasIt = false
+    local rockRNG = nil
+    mod:AnyPlayerDo(function(player)
+        if player:HasCollectible(rockType) then
+            hasIt = true
+            rockRNG = player:GetCollectibleRNG(rockType)
+        end
+    end)
+    if hasIt and rockRNG:RandomInt(5) == 1 then
+        Isaac.Spawn(3, 201, 12, position, Vector.Zero, nil)
+    end
+end
+  
+  local function rockIsBroken(position)
+    local room = game:GetRoom()
+    local rock = room:GetGridEntity(position)
+    if not rock then
+      return true
+    elseif rock:ToRock() and rock.State == 2 then
+      return true
+    --elseif rock:ToPoop() and rock.State == 1000 then
+      --return true
+    else
+      return false
+    end
+  end
+  
+  
+  function mod:CheckRocksBreak()
+    local room = game:GetRoom()
+    local level = game:GetLevel()
+    local newRoom = false
+    if saveTable.scanRockRoom ~= level:GetCurrentRoomIndex() then
+      newRoom = true
+      saveTable.scanRockRoom = level:GetCurrentRoomIndex()
+    end
+    if not saveTable.scanRockMap then
+        saveTable.scanRockMap = {}
+    end
+  
+    for i=1, room:GetGridSize(), 1 do
+      local rock = room:GetGridEntity(i)
+      if newRoom then
+        if rock and not rockIsBroken(i) then
+            saveTable.scanRockMap[i] = rock:GetType()
+        else
+            saveTable.scanRockMap[i] = nil
+        end
+      else
+        if rock and saveTable.scanRockMap[i] ~= nil and rockIsBroken(i) then
+          mod:onRockBreak(saveTable.scanRockMap[i], rock.Position)
+          saveTable.scanRockMap[i] = nil
+        end
+      end
+    end
+  end
+  mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.CheckRocksBreak)
+
+  local numbHeartItem = Isaac.GetItemIdByName("Numb Heart")
+
+----------------------------------------------------------
+--LIKE (Item)
+----------------------------------------------------------
+local likeFrame = -5
+local likeType = Isaac.GetItemIdByName("Like")
+function mod:onPlayerUpdate_Like(player)
+    if player:HasCollectible(likeType) and player:GetSprite():GetAnimation() == "Happy" and player:GetSprite():GetFrame() == 6 then
+        print("up!")
+        local pdata = mod:repmGetPData(player) 
+        pdata.Like_AllBonus = (pdata.Like_AllBonus or 0) + 0.5
+        player:AddCacheFlags(CacheFlag.CACHE_ALL)
+        player:EvaluateItems()
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.onPlayerUpdate_Like)
+
+
+function mod:likeCache(player, cacheFlag)
+    local pdata = mod:repmGetPData(player) 
+    if cacheFlag == CacheFlag.CACHE_DAMAGE then
+        player.Damage = player.Damage + (0.4 * (pdata.Like_AllBonus or 0))
+    elseif cacheFlag == CacheFlag.CACHE_FIREDELAY then
+        local tearstoadd = (0.4 * (pdata.Like_AllBonus or 0))
+        player.MaxFireDelay = tearsUp(player.MaxFireDelay, tearstoadd)
+    elseif cacheFlag == CacheFlag.CACHE_LUCK then
+        player.Luck = player.Luck + (0.4 * (pdata.Like_AllBonus or 0))
+    elseif cacheFlag == CacheFlag.CACHE_SPEED then
+        player.MoveSpeed = player.MoveSpeed + (0.4 * (pdata.Like_AllBonus or 0))
+    elseif cacheFlag == CacheFlag.CACHE_RANGE then
+        player.TearRange = player.TearRange + (40 * (pdata.Like_AllBonus or 0))
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.likeCache)
+
+
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------
@@ -3237,9 +3338,11 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.changeLights)
 if EID then
     EID:addCollectible(mod.COLLECTIBLE_DONKEY_JAWBONE, DJdesc, "Donkey Jawbone", "en_us")
     EID:addCollectible(CollectibleType.COLLECTIBLE_TSUNDERE_FLY, "Spawns two fly orbitals that deflect projectiles#Deflected shots become homing, and freeze any non-boss enemy they touch.", "Frozen Flies", "en_us")
+    EID:addCollectible(rockType, "Friendly Stone Dips will have a 20% chance to spawn out of rocks when they are broken.", "Friendly Rocks", "en_us")
+    EID:addCollectible(numbHeartItem, "On use, adds 1 frozen heart.", "Numb Heart", "en_us")
 
     EID:addTrinket(Trinket.PocketTechology, "Deal 1.5x more damage to champion enemies and champion bosses", "Pocket Techology", "en_us");
-
+    
     EID:addCard(iceCard, "Using it in most rooms slowly begins to freeze all enemies. #Non-boss enemies in the room gradually turn blue before freezing completely#Use this item in the Mom fight for a different effect...", "Icicle", "en_us")
     local iceHud = Sprite()
     iceHud:Load("gfx/cards_2_icicle.anm2", true)

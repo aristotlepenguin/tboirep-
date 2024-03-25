@@ -237,7 +237,6 @@ CustomHealthAPI.Library.RegisterSoulHealth(
 )
 local dupesOff = false
 CustomHealthAPI.Library.AddCallback("RepentanceMinus", CustomHealthAPI.Enums.Callbacks.POST_HEALTH_DAMAGED, 0, function(player, flags, key, hpDamaged, wasDepleted, wasLastDamaged)
-	print(key)
     if key == "HEART_ICE" then
         local pdata = mod:repmGetPData(player)
         pdata.isIceheartCrept = true
@@ -387,7 +386,8 @@ local frostType = Isaac.GetPlayerTypeByName("Frosty", false)
 
 function mod:onFrostyInit(player)
     if player:GetPlayerType() == frostType then
-        CustomHealthAPI.Library.AddHealth(player, HeartKey[mod.HEART_ICE], 5, true)
+        player:AddSoulHearts(-1)
+        CustomHealthAPI.Library.AddHealth(player, HeartKey[mod.HEART_ICE], 6, true)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.onFrostyInit)
@@ -396,5 +396,10 @@ local numbHeartItem = Isaac.GetItemIdByName("Numb Heart")
 function mod:onUseNumbHeart(collectible, thisRng, player, useflags, activeslot, customvardata)
     CustomHealthAPI.Library.AddHealth(player, HeartKey[mod.HEART_ICE], 2, true)
     sfx:Play(SoundEffect.SOUND_FREEZE, 1, 0, false, 1.0)
+    return {
+        Discharge = true,
+        Remove = false,
+        ShowAnim = true
+    }
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.onUseNumbHeart, numbHeartItem)
