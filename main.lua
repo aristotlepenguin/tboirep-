@@ -2840,7 +2840,7 @@ function mod:DebugText()
     local player = Isaac.GetPlayer(0) --this one is OK
     local coords = (player.Position):Distance(Vector(320, 150))
     --local coords = player.Position
-    local debug_str = tostring(coords)
+    local debug_str = tostring(player.Position)
     --26
     Isaac.RenderText(debug_str, 100, 60, 1, 1, 1, 255)
 
@@ -3301,7 +3301,6 @@ local likeFrame = -5
 local likeType = Isaac.GetItemIdByName("Like")
 function mod:onPlayerUpdate_Like(player)
     if player:HasCollectible(likeType) and player:GetSprite():GetAnimation() == "Happy" and player:GetSprite():GetFrame() == 6 then
-        print("up!")
         local pdata = mod:repmGetPData(player) 
         pdata.Like_AllBonus = (pdata.Like_AllBonus or 0) + 0.5
         player:AddCacheFlags(CacheFlag.CACHE_ALL)
@@ -3327,6 +3326,81 @@ function mod:likeCache(player, cacheFlag)
     end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.likeCache)
+
+----------------------------------------------------------
+--LOCUST KING 
+----------------------------------------------------------
+local locustChallenge = Isaac.GetChallengeIdByName("Locust King")
+
+function mod:collideItemPedestalAbs(pickup, collider, low)
+    local player = collider:ToPlayer()
+    if player and Isaac.GetChallenge() == locustChallenge and 
+    pickup.SubType ~= 0 and
+    not Isaac.GetItemConfig():GetCollectible(pickup.SubType):HasTags(ItemConfig.TAG_QUEST) and
+    not pickup.SubType == CollectibleType.COLLECTIBLE_MORE_OPTIONS
+    then
+        sfx:Play(SoundEffect.SOUND_FART, 2)
+        local items = Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE)
+        local pickupindex = pickup:ToPickup().OptionsPickupIndex
+        for i, item in ipairs(items) do
+            if item:ToPickup().OptionsPickupIndex == pickupindex and pickupindex ~= 0 then
+                item:Remove()
+            end
+        end
+        Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF01, 0, pickup.Position, Vector(0,0), nil)
+        pickup:Remove()
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.collideItemPedestalAbs, PickupVariant.PICKUP_COLLECTIBLE)
+
+local function doesAnyoneHave(trinket)
+    local hasIt = false
+    mod:AnyPlayerDo(function(player)
+        if player:HasTrinket(trinket) then
+            hasIt = true
+        end
+    end)
+    return hasIt
+end
+
+function mod:onLevelStart_Locust()
+    local hasIt = false
+    mod:AnyPlayerDo(function(player)
+        if player:HasCollectible(CollectibleType.COLLECTIBLE_MORE_OPTIONS) then
+            hasIt = true
+        end
+    end)
+    if Isaac.GetChallenge() == locustChallenge then
+        if not hasIt then
+            local itemHere = Isaac.Spawn(5, 100, CollectibleType.COLLECTIBLE_MORE_OPTIONS, Vector(160, 225), Vector.Zero, nil)
+            itemHere:ToPickup().ShopItemId = -1
+            itemHere:ToPickup().AutoUpdatePrice = false
+            itemHere:ToPickup().Price = 20
+        end
+
+        if not doesAnyoneHave(186) then
+            Isaac.Spawn(5, 350, 186, Vector(480, 225), Vector.Zero, nil)
+        elseif not doesAnyoneHave(115) then
+            Isaac.Spawn(5, 350, 115, Vector(480, 225), Vector.Zero, nil)
+        elseif not doesAnyoneHave(114) then
+            Isaac.Spawn(5, 350, 114, Vector(480, 225), Vector.Zero, nil)
+        elseif not doesAnyoneHave(113) then
+            Isaac.Spawn(5, 350, 113, Vector(480, 225), Vector.Zero, nil)
+        elseif not doesAnyoneHave(116) then
+            Isaac.Spawn(5, 350, 116, Vector(480, 225), Vector.Zero, nil)
+        elseif not doesAnyoneHave(117) then
+            Isaac.Spawn(5, 350, 117, Vector(480, 225), Vector.Zero, nil)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.onLevelStart_Locust)
+
+function mod:ChallengeMarblesInit(player)
+    if player and Isaac.GetChallenge() == locustChallenge then
+        player:AddCollectible(CollectibleType.COLLECTIBLE_MARBLES, 0, false)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.ChallengeMarblesInit)
 
 
 
