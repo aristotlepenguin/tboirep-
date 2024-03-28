@@ -154,7 +154,7 @@ local function taintedMorph(heartPickup, taintedSubtype)
 end
 
 local function getTrueTaintedMorphChance(kind)
-    if kind == "red" then
+    if kind == "soul" then
         for i = 0, game:GetNumPlayers() - 1 do
             local player = Isaac.GetPlayer(i)
 
@@ -164,16 +164,6 @@ local function getTrueTaintedMorphChance(kind)
             end
 
             return 8
-        end
-    elseif kind == "double" then
-        for i = 0, game:GetNumPlayers() - 1 do
-            local player = Isaac.GetPlayer(i)
-
-            if player:HasCollectible(CollectibleType.COLLECTIBLE_HUMBLEING_BUNDLE) then
-                return 50
-            end
-
-            return 250
         end
     else
         return 0
@@ -193,8 +183,8 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, function(_, pickup)
         local subtype = pickup.SubType
         local baseChance
 
-        if subtype == HeartSubType.HEART_FULL then
-            baseChance = getTrueTaintedMorphChance("red")
+        if subtype == HeartSubType.HEART_SOUL then
+            baseChance = getTrueTaintedMorphChance("soul")
             if roll < baseChance then taintedMorph(pickup, mod.CustomPickups.TaintedHearts.HEART_BROKEN) end
         end
     end

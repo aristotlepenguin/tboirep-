@@ -2765,6 +2765,9 @@ end)
 
 if REPENTOGON then
     local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
+    local DeathCardAchId = Isaac.GetAchievementIdByName("FrostySatan")
+    local FrozenHeartsAchId = Isaac.GetAchievementIdByName("FrozenHearts")
+    local ImprovedCardsAchId = Isaac.GetAchievementIdByName("improved_cards")
     --Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
 end
 
@@ -2959,6 +2962,7 @@ function mod:onCollisionSecret(player, collider, low)
     if collider.Type == 6 and collider.Variant == 14 and game:GetRoom():GetType() == RoomType.ROOM_SECRET_EXIT then
         FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
         Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
+        Isaac.GetPersistentGameData():TryUnlock(FrozenHeartsAchId)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, mod.onCollisionSecret)
