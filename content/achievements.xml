@@ -5,4 +5,5 @@
 	<achievement name="FrostySatan" text='' gfx="achievementfrostysatan.png" />
 	<achievement name="FrozenHearts" text='' gfx="achievementfrozenhearts.png" />
 	<achievement name="improved_cards" text='' gfx="achievementimproved_cards.png" />
+	<achievement name="NumbHeart" text='' gfx="numb_heart_ach.png" />
 </achievements>

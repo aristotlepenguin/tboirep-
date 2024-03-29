@@ -2768,6 +2768,7 @@ if REPENTOGON then
     local DeathCardAchId = Isaac.GetAchievementIdByName("FrostySatan")
     local FrozenHeartsAchId = Isaac.GetAchievementIdByName("FrozenHearts")
     local ImprovedCardsAchId = Isaac.GetAchievementIdByName("improved_cards")
+    local NumbHeartAchId = Isaac.GetAchievementIdByName("NumbHeart")
     --Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
 end
 
@@ -3406,6 +3407,35 @@ function mod:ChallengeMarblesInit(player)
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.ChallengeMarblesInit)
 
+
+----------------------------------------------------------
+--ACHIEVEMENT
+----------------------------------------------------------
+function mod:onSatanFrostyKill()
+    local isFrosty = false
+    mod:AnyPlayerDo(function(player)
+        if player:GetPlayerType() == frostType then
+            isFrosty = true
+        end
+    end)
+    if isFrosty then
+        Isaac.GetPersistentGameData():TryUnlock(DeathCardAchId)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onSatanFrostyKill, EntityType.ENTITY_SATAN)
+
+function mod:onBlueBabyFrostyKill(entity)
+    local isFrosty = false
+    mod:AnyPlayerDo(function(player)
+        if player:GetPlayerType() == frostType then
+            isFrosty = true
+        end
+    end)
+    if isFrosty and entity.Variant == 1 then 
+        Isaac.GetPersistentGameData():TryUnlock(NumbHeartAchId)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onSatanFrostyKill, EntityType.ENTITY_ISAAC)
 
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 

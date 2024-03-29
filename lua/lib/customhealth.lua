@@ -170,6 +170,7 @@ local function getTrueTaintedMorphChance(kind)
     end
 end
 
+local FrozenHeartsAchId = Isaac.GetAchievementIdByName("FrozenHearts")
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, function(_, pickup)
     if not pickup:GetData().noTaintedMorph
         and pickup.Price == 0 and game:GetRoom():GetType() ~= RoomType.ROOM_SUPERSECRET
@@ -183,9 +184,9 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, function(_, pickup)
         local subtype = pickup.SubType
         local baseChance
 
-        if subtype == HeartSubType.HEART_SOUL then
+        if subtype == HeartSubType.HEART_SOUL and Isaac.GetPersistentGameData():Unlocked(FrozenHeartsAchId) then
             baseChance = getTrueTaintedMorphChance("soul")
-            if roll < baseChance then taintedMorph(pickup, mod.CustomPickups.TaintedHearts.HEART_BROKEN) end
+            if roll < baseChance then taintedMorph(pickup, mod.HEART_ICE) end
         end
     end
 end, PickupVariant.PICKUP_HEART)
@@ -373,11 +374,15 @@ end, PickupVariant.PICKUP_HEART)
 
 local frostType = Isaac.GetPlayerTypeByName("Frosty", false)
 
+local DeathCardAchId = Isaac.GetAchievementIdByName("FrostySatan")
 
 function mod:onFrostyInit(player)
     if player:GetPlayerType() == frostType then
         player:AddSoulHearts(-1)
         CustomHealthAPI.Library.AddHealth(player, HeartKey[mod.HEART_ICE], 6, true)
+        if Isaac.GetPersistentGameData():Unlocked(DeathCardAchId) then
+            player:AddCard(Card.CARD_DEATH)
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.onFrostyInit)
