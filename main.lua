@@ -3435,7 +3435,40 @@ function mod:onBlueBabyFrostyKill(entity)
         Isaac.GetPersistentGameData():TryUnlock(NumbHeartAchId)
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onSatanFrostyKill, EntityType.ENTITY_ISAAC)
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onBlueBabyFrostyKill, EntityType.ENTITY_ISAAC)
+
+function mod:onMomHeartKill(entity)
+    local FrostyDone = false
+    local SimDone = false
+    local MinusIsaacDone = false
+
+    mod:AnyPlayerDo(function(player)
+        if player:GetPlayerType() == frostType or Isaac.GetCompletionMark(frostType, 0) then
+            FrostyDone = true
+        end
+        if player:GetPlayerType() == SimType or Isaac.GetCompletionMark(SimType, 0) then
+            FrostyDone = true
+        end
+        if player:GetPlayerType() == Minusaac or Isaac.GetCompletionMark(Minusaac, 0) then
+            MinusIsaacDone = true
+        end
+    end)
+    if FrostyDone and SimDone and MinusIsaacDone then 
+        Isaac.GetPersistentGameData():TryUnlock(ImprovedCardsAchId)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onMomHeartKill, EntityType.ENTITY_MOMS_HEART)
+
+----------------------------------------------------------
+--ENHANCED CARDS
+----------------------------------------------------------
+function mod:OnTwoHearts(card, player, useflags)
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
+        player:AddBlueFlies(12, player.Position, nil)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnTwoHearts, Card.CARD_HEARTS_2)
 
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
