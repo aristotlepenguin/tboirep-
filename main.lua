@@ -2763,14 +2763,13 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
     end
 end)
 
-if REPENTOGON then
-    local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
-    local DeathCardAchId = Isaac.GetAchievementIdByName("FrostySatan")
-    local FrozenHeartsAchId = Isaac.GetAchievementIdByName("FrozenHearts")
-    local ImprovedCardsAchId = Isaac.GetAchievementIdByName("improved_cards")
-    local NumbHeartAchId = Isaac.GetAchievementIdByName("NumbHeart")
+
+local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
+local DeathCardAchId = Isaac.GetAchievementIdByName("FrostySatan")
+local FrozenHeartsAchId = Isaac.GetAchievementIdByName("FrozenHearts")
+local ImprovedCardsAchId = Isaac.GetAchievementIdByName("improved_cards")
+local NumbHeartAchId = Isaac.GetAchievementIdByName("NumbHeart")
     --Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
-end
 
 function mod:Anm()
     if game:GetFrameCount() == 1 and mod.MenuData.StartThumbsUp ~= 2 then
@@ -2829,13 +2828,19 @@ function mod:tryOpenDoor_Fro_Polaroid(player)
             saveTable.repM_FrostyUnlock = true
         end
     end
-    if player:HasTrinket(polaroidTrinket) and player:GetLastActionTriggers() & ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED == ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED then
-        player:AddTrinket(polaroidTrinket)
-        local trinkets = Isaac.FindByType(5, 350, 195)
+    if player:GetLastActionTriggers() & ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED == ActionTriggers.ACTIONTRIGGER_ITEMSDROPPED then
+        local trinkets = Isaac.FindByType(5, 350, polaroidTrinket)
+        local respawnPolaroid = false
         for i, trinket in ipairs(trinkets) do
-            trinket:Remove()
-            break
+            if trinket.FrameCount == 0 then
+                trinket:Remove()
+                respawnPolaroid = true
+                break
+            end
         end -- not a great solution but let's see
+        if respawnPolaroid then
+            player:AddTrinket(polaroidTrinket)
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.tryOpenDoor_Fro_Polaroid)
@@ -2986,8 +2991,8 @@ function mod:disableCreepRoom()
     mod:AnyPlayerDo(function(player)
         local pdata = mod:repmGetPData(player)
         pdata.isIceheartCrept = nil
+        pdata.EnhSpeedBonus = 0
     end)
-    
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.disableCreepRoom)
 
@@ -3247,7 +3252,7 @@ function mod:onRockBreak(rockSubtype, position) --probably could make a callback
             rockRNG = player:GetCollectibleRNG(rockType)
         end
     end)
-    if hasIt and rockRNG:RandomInt(5) == 1 then
+    if hasIt and rockRNG:RandomInt(10) ~= 1 then
         Isaac.Spawn(3, 201, 12, position, Vector.Zero, nil)
     end
 end
@@ -3316,7 +3321,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.onPlayerUpdate_Like)
 
 
 function mod:likeCache(player, cacheFlag)
-    local pdata = mod:repmGetPData(player) 
+    local pdata = mod:repmGetPData(player)
     if cacheFlag == CacheFlag.CACHE_DAMAGE then
         player.Damage = player.Damage + (0.4 * (pdata.Like_AllBonus or 0))
     elseif cacheFlag == CacheFlag.CACHE_FIREDELAY then
@@ -3326,6 +3331,7 @@ function mod:likeCache(player, cacheFlag)
         player.Luck = player.Luck + (0.4 * (pdata.Like_AllBonus or 0))
     elseif cacheFlag == CacheFlag.CACHE_SPEED then
         player.MoveSpeed = player.MoveSpeed + (0.4 * (pdata.Like_AllBonus or 0))
+        player.MoveSpeed = player.MoveSpeed + (pdata.EnhSpeedBonus or 0) * 0.2
     elseif cacheFlag == CacheFlag.CACHE_RANGE then
         player.TearRange = player.TearRange + (40 * (pdata.Like_AllBonus or 0))
     end
@@ -3342,7 +3348,7 @@ function mod:collideItemPedestalAbs(pickup, collider, low)
     if player and Isaac.GetChallenge() == locustChallenge and 
     pickup.SubType ~= 0 and
     not Isaac.GetItemConfig():GetCollectible(pickup.SubType):HasTags(ItemConfig.TAG_QUEST) and
-    not pickup.SubType == CollectibleType.COLLECTIBLE_MORE_OPTIONS
+    pickup.SubType ~= CollectibleType.COLLECTIBLE_MORE_OPTIONS
     then
         sfx:Play(SoundEffect.SOUND_FART, 2)
         local items = Isaac.FindByType(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE)
@@ -3354,6 +3360,7 @@ function mod:collideItemPedestalAbs(pickup, collider, low)
         end
         Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF01, 0, pickup.Position, Vector(0,0), nil)
         pickup:Remove()
+        return true
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.collideItemPedestalAbs, PickupVariant.PICKUP_COLLECTIBLE)
@@ -3370,18 +3377,19 @@ end
 
 function mod:onLevelStart_Locust()
     local hasIt = false
-    mod:AnyPlayerDo(function(player)
-        if player:HasCollectible(CollectibleType.COLLECTIBLE_MORE_OPTIONS) then
-            hasIt = true
-        end
-    end)
+    --mod:AnyPlayerDo(function(player)
+        --if player:HasCollectible(CollectibleType.COLLECTIBLE_MORE_OPTIONS) then
+            --hasIt = true
+        --end
+    --end)
     if Isaac.GetChallenge() == locustChallenge then
-        if not hasIt then
-            local itemHere = Isaac.Spawn(5, 100, CollectibleType.COLLECTIBLE_MORE_OPTIONS, Vector(160, 225), Vector.Zero, nil)
-            itemHere:ToPickup().ShopItemId = -1
-            itemHere:ToPickup().AutoUpdatePrice = false
-            itemHere:ToPickup().Price = 20
-        end
+        --if not hasIt then
+        local itemHere = Isaac.Spawn(5, 10, 11, Vector(160, 225), Vector.Zero, nil)
+        itemHere:ToPickup().ShopItemId = -1
+        itemHere:ToPickup().AutoUpdatePrice = false
+        itemHere:ToPickup().Price = 4
+        --end
+
 
         if not doesAnyoneHave(186) then
             Isaac.Spawn(5, 350, 186, Vector(480, 225), Vector.Zero, nil)
@@ -3597,6 +3605,17 @@ function mod:OnEnhancedJudgement(card, player, useflags)
     end
 end
 mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnEnhancedTwoHearts, Card.CARD_JUDGEMENT)
+
+function mod:OnEnhancedStrengthB(card, player, useflags)
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
+        local pdata = mod:repmGetPData(player)
+        pdata.EnhSpeedBonus = (pdata.EnhSpeedBonus or 0) + 1
+        return true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedStrengthB, Card.CARD_REVERSE_STRENGTH)
+
 
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
