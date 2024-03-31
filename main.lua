@@ -2992,6 +2992,8 @@ function mod:disableCreepRoom()
         local pdata = mod:repmGetPData(player)
         pdata.isIceheartCrept = nil
         pdata.EnhSpeedBonus = 0
+        player:AddCacheFlags(CacheFlag.CACHE_SPEED)  
+        player:EvaluateItems()
     end)
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.disableCreepRoom)
@@ -3455,7 +3457,7 @@ function mod:onMomHeartKill(entity)
             FrostyDone = true
         end
         if player:GetPlayerType() == SimType or Isaac.GetCompletionMark(SimType, 0) then
-            FrostyDone = true
+            SimDone = true
         end
         if player:GetPlayerType() == Minusaac or Isaac.GetCompletionMark(Minusaac, 0) then
             MinusIsaacDone = true
@@ -3474,6 +3476,7 @@ function mod:OnEnhancedTwoHearts(card, player, useflags)
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
     (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
         player:AddBlueFlies(12, player.Position, nil)
+        player:AnimateCard(card)
         return true
     end
 end
@@ -3487,6 +3490,7 @@ function mod:OnEnhancedHierophant(card, player, useflags)
         
         Isaac.Spawn(5, 20, 2, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
         Isaac.Spawn(5, 20, 2, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        player:AnimateCard(card)
         return true
     end
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
@@ -3497,6 +3501,7 @@ function mod:OnEnhancedHierophant(card, player, useflags)
         else
             player:AddBlueFlies(10, player.Position, nil)
         end
+        player:AnimateCard(card)
         return true
     end
 end
@@ -3510,6 +3515,7 @@ function mod:OnEnhancedLovers(card, player, useflags)
         
         Isaac.Spawn(5, 20, 1, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
         Isaac.Spawn(5, 20, 1, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        player:AnimateCard(card)
         return true
     end
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
@@ -3519,6 +3525,7 @@ function mod:OnEnhancedLovers(card, player, useflags)
         else
             player:AddBlueFlies(5, player.Position, nil)
         end
+        player:AnimateCard(card)
         return true
     end
 end
@@ -3527,7 +3534,11 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedLovers, Card.CARD_LO
 function mod:OnEnhancedTemperance(card, player, useflags)
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
     (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
-        Isaac.Spawn(6, 3, 0, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        local room = game:GetRoom()
+        sfx:Play(SoundEffect.SOUND_SUMMONSOUND, 1, 0, false, 1)
+        local slot = Isaac.Spawn(6, 3, 0, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF01, 0, slot.Position, Vector(0,0), nil)
+        player:AnimateCard(card)
         return true
     end
 end -- to do, add a poof and spawn sound
@@ -3537,6 +3548,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedTemperance, Card.CAR
 function mod:OnEnhancedDagaz(card, player, useflags)
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
     (player:GetPlayerType() == PlayerType.PLAYER_KEEPER or player:GetPlayerType() == PlayerType.PLAYER_KEEPER_B) then
+        local room = game:GetRoom()
         Isaac.Spawn(5, 20, 2, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
     end
 end -- to do, add a poof and spawn sound
@@ -3548,11 +3560,13 @@ function mod:OnEnhancedHierophantB(card, player, useflags)
         --player:AddBlueFlies(12, player.Position, nil)
         local room = game:GetRoom()
         Isaac.Spawn(5, 20, 3, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        player:AnimateCard(card)
         return true
     end
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
     (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
         player:AddBlueFlies(8, player.Position, nil)
+        player:AnimateCard(card)
         return true
     end
 end
@@ -3568,6 +3582,7 @@ function mod:OnEnhancedQueenHearts(card, player, useflags)
         for i=1, amountSpiders, 1 do
             player:AddBlueSpider(player.Position)
         end
+        player:AnimateCard(card)
         return true
     end
 end
@@ -3579,21 +3594,22 @@ function mod:OnEnhancedEmpressB(card, player, useflags)
         local room = game:GetRoom()
         Isaac.Spawn(5, 20, 3, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
         Isaac.Spawn(5, 20, 3, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        player:AnimateCard(card)
         return true
     end
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
     (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
         player:AddBlueFlies(8, player.Position, nil)
+        player:AnimateCard(card)
         return true
     end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedHierophantB, Card.CARD_REVERSE_EMPRESS)
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedEmpressB, Card.CARD_REVERSE_EMPRESS)
 
 
 function mod:OnEnhancedJudgement(card, player, useflags)
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
     (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
-        sfx:Play(SoundEffect.SOUND_SUMMONSOUND, 1, 0, false, 1)
         local entities = Isaac.FindByType(6, 5, -1)
         for i, entity in ipairs(entities) do
             if entity.FrameCount <= 15 then
@@ -3604,13 +3620,16 @@ function mod:OnEnhancedJudgement(card, player, useflags)
         end
     end
 end
-mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnEnhancedTwoHearts, Card.CARD_JUDGEMENT)
+mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnEnhancedJudgement, Card.CARD_JUDGEMENT)
 
 function mod:OnEnhancedStrengthB(card, player, useflags)
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
     (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
         local pdata = mod:repmGetPData(player)
         pdata.EnhSpeedBonus = (pdata.EnhSpeedBonus or 0) + 1
+        player:AddCacheFlags(CacheFlag.CACHE_SPEED)  
+        player:EvaluateItems()
+        player:AnimateCard(card)
         return true
     end
 end
