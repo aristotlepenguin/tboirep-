@@ -3462,13 +3462,141 @@ mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onMomHeartKill, EntityType
 ----------------------------------------------------------
 --ENHANCED CARDS
 ----------------------------------------------------------
-function mod:OnTwoHearts(card, player, useflags)
+function mod:OnEnhancedTwoHearts(card, player, useflags)
     if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
     (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
         player:AddBlueFlies(12, player.Position, nil)
+        return true
     end
 end
-mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnTwoHearts, Card.CARD_HEARTS_2)
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedTwoHearts, Card.CARD_HEARTS_2)
+
+function mod:OnEnhancedHierophant(card, player, useflags)
+    local room = game:GetRoom()
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_KEEPER or player:GetPlayerType() == PlayerType.PLAYER_KEEPER_B) then
+        --player:AddBlueFlies(12, player.Position, nil)
+        
+        Isaac.Spawn(5, 20, 2, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        Isaac.Spawn(5, 20, 2, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        return true
+    end
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
+        if Isaac.GetPersistentGameData():Unlocked(293) then
+            Isaac.Spawn(5, 300, 51, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+            Isaac.Spawn(5, 300, 0, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        else
+            player:AddBlueFlies(10, player.Position, nil)
+        end
+        return true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedHierophant, Card.CARD_HIEROPHANT)
+
+function mod:OnEnhancedLovers(card, player, useflags)
+    local room = game:GetRoom()
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_KEEPER or player:GetPlayerType() == PlayerType.PLAYER_KEEPER_B) then
+        --player:AddBlueFlies(12, player.Position, nil)
+        
+        Isaac.Spawn(5, 20, 1, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        Isaac.Spawn(5, 20, 1, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        return true
+    end
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
+        if Isaac.GetPersistentGameData():Unlocked(293) then
+            Isaac.Spawn(5, 300, 51, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        else
+            player:AddBlueFlies(5, player.Position, nil)
+        end
+        return true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedLovers, Card.CARD_LOVERS)
+
+function mod:OnEnhancedTemperance(card, player, useflags)
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
+        Isaac.Spawn(6, 3, 0, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        return true
+    end
+end -- to do, add a poof and spawn sound
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedTemperance, Card.CARD_TEMPERANCE)
+
+
+function mod:OnEnhancedDagaz(card, player, useflags)
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_KEEPER or player:GetPlayerType() == PlayerType.PLAYER_KEEPER_B) then
+        Isaac.Spawn(5, 20, 2, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+    end
+end -- to do, add a poof and spawn sound
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedDagaz, Card.RUNE_DAGAZ)
+
+function mod:OnEnhancedHierophantB(card, player, useflags)
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_KEEPER or player:GetPlayerType() == PlayerType.PLAYER_KEEPER_B) then
+        --player:AddBlueFlies(12, player.Position, nil)
+        local room = game:GetRoom()
+        Isaac.Spawn(5, 20, 3, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        return true
+    end
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
+        player:AddBlueFlies(8, player.Position, nil)
+        return true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedHierophantB, Card.CARD_REVERSE_HIEROPHANT)
+
+
+function mod:OnEnhancedQueenHearts(card, player, useflags)
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
+        local amountTotal = globalRng:RandomInt(39)+2
+        local amountSpiders = globalRng:RandomInt(amountTotal)
+        player:AddBlueFlies(amountTotal-amountSpiders, player.Position, nil)
+        for i=1, amountSpiders, 1 do
+            player:AddBlueSpider(player.Position)
+        end
+        return true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedQueenHearts, Card.CARD_QUEEN_OF_HEARTS)
+
+function mod:OnEnhancedEmpressB(card, player, useflags)
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_KEEPER or player:GetPlayerType() == PlayerType.PLAYER_KEEPER_B) then
+        local room = game:GetRoom()
+        Isaac.Spawn(5, 20, 3, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        Isaac.Spawn(5, 20, 3, room:FindFreePickupSpawnPosition(room:GetCenterPos()), Vector.Zero, nil)
+        return true
+    end
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
+        player:AddBlueFlies(8, player.Position, nil)
+        return true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedHierophantB, Card.CARD_REVERSE_EMPRESS)
+
+
+function mod:OnEnhancedJudgement(card, player, useflags)
+    if Isaac.GetPersistentGameData():Unlocked(ImprovedCardsAchId) and
+    (player:GetPlayerType() == PlayerType.PLAYER_THELOST or player:GetPlayerType() == PlayerType.PLAYER_THELOST_B) then
+        sfx:Play(SoundEffect.SOUND_SUMMONSOUND, 1, 0, false, 1)
+        local entities = Isaac.FindByType(6, 5, -1)
+        for i, entity in ipairs(entities) do
+            if entity.FrameCount <= 15 then
+                local oldPos = entity.Position
+                entity:Remove()
+                Isaac.Spawn(6, 4, 0, oldPos, Vector.Zero, nil)
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_USE_CARD, mod.OnEnhancedTwoHearts, Card.CARD_JUDGEMENT)
 
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
