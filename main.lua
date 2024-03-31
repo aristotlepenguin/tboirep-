@@ -34,6 +34,27 @@ function mod.StoreSaveData()
     saveTable.MenuData = mod.MenuData
 end
 
+function mod:GetPlayerFromTear(tear)
+    for i=1, 2 do
+        local check = nil
+        if i == 1 then
+            check = tear.Parent
+        elseif i == 2 then
+            check = tear.SpawnerEntity
+        end
+        if check then
+            if check.Type == EntityType.ENTITY_PLAYER then
+                return check:ToPlayer()   
+            elseif check.Type == EntityType.ENTITY_FAMILIAR and (check.Variant == FamiliarVariant.INCUBUS or check.Variant == FamiliarVariant.TWISTED_BABY) then
+                local data = tear:GetData()
+                data.IsIncubusTear = true
+                return check:ToFamiliar().Player:ToPlayer()
+            end
+        end
+    end
+    return nil
+  end
+
 function mod:getPlayerFromKnifeLaser(entity)
 	if entity.SpawnerEntity and entity.SpawnerEntity:ToPlayer() then
 		return entity.SpawnerEntity:ToPlayer()
@@ -460,9 +481,7 @@ function Sim:onCache(player, cacheFlag) -- I do mean everywhere!
         if cacheFlag == CacheFlag.CACHE_TEARFLAG then
             player.TearFlags = player.TearFlags | Sim.TEARFLAG
         end
-        --if cacheFlag == CacheFlag.CACHE_TEARCOLOR then
-            --player.TearColor = Sim.TEARCOLOR
-        --end
+        
     end
 end
  
@@ -2078,7 +2097,7 @@ local Minusaac = { -- Change Minusaac everywhere to match your character. No spa
     LUCK = 1,
     FLYING = false,                                  
     TEARFLAG = 0, -- 0 is default
-    TEARCOLOR = Color(1.0, 1.0, 1.0, 1.0, 0, 0, 0)  -- Color(1.0, 1.0, 1.0, 1.0, 0, 0, 0) is default
+    TEARCOLOR = Color(1.0, 0.2, 0.2, 1.0, 1, 0, -.5)  -- Color(1.0, 1.0, 1.0, 1.0, 0, 0, 0) is default
 }
  
 function mod:onCache_Minus(player, cacheFlag) -- I do mean everywhere!
@@ -2110,7 +2129,14 @@ end
  
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.onCache_Minus)
 
-
+function mod:AlterTearColor(tear)
+    local player = mod:GetPlayerFromTear(tear)
+    if player and player:GetName() == "Minusaac" and tear.FrameCount == 0 then
+        tear:GetSprite().Color:SetColorize(1, 0, 0, 1)
+        print(tear.FrameCount)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.AlterTearColor)
 
 function AddFlag(...)
     local ToReturn = 0
