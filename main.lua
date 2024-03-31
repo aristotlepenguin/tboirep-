@@ -74,6 +74,15 @@ function mod:getPlayerFromKnifeLaser(entity)
 	end
 end
 
+function mod:repmGetPData(player)
+    
+    local data = player:GetData()
+    if data.repmSaveData == nil then
+        data.repmSaveData = {}
+    end
+    return data.repmSaveData
+end
+
 local DSSInitializerFunction = include("lua.lib.DSSMenu")
 DSSInitializerFunction(mod)
 
@@ -2133,7 +2142,6 @@ function mod:AlterTearColor(tear)
     local player = mod:GetPlayerFromTear(tear)
     if player and player:GetName() == "Minusaac" and tear.FrameCount == 0 then
         tear:GetSprite().Color:SetColorize(1, 0, 0, 1)
-        print(tear.FrameCount)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.AlterTearColor)
@@ -2152,14 +2160,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT,function (_,Player)
     if Player:GetPlayerType() ~= Minusaac then
         return
     end
-    Player:GetData().RepMinus = {
-        StatsDowns = {
-            Damage = 0,
-            MoveSpeed = 0,
-            MaxFireDelay = 0,
-            TearRange = 0,
-        }
-    }
+    local pdata = mod:repmGetPData(Player)
 end)
 
 --if player:GetName() == "Minusaac" then
@@ -2175,7 +2176,6 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM,function (_,_,_,Player)
     if Player:GetPlayerType() ~= Minusaac then
         return
     end
-    --print(Player:GetEffectiveMaxHearts())
     if Player:GetEffectiveMaxHearts() > 2 or (Player:GetEffectiveMaxHearts() > 0 and Player:GetSoulHearts() > 0) then
         Player:AddMaxHearts(-2)
     elseif Player:GetSoulHearts() > 4 or (Player:GetEffectiveMaxHearts() > 0 and Player:GetSoulHearts() >= 4) then
@@ -2189,11 +2189,11 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM,function (_,_,_,Player)
         Isaac.Spawn(EntityType.ENTITY_EFFECT,EffectVariant.BLOOD_PARTICLE,0,Player.Position,Vector(0,math.random(0,5)):Rotated(math.random(360)),nil)
         Player:SetMinDamageCooldown(90)
     end
-    local Data = Player:GetData().RepMinus.StatsDowns
-    Data.MoveSpeed = Data.MoveSpeed + 0.15
-    Data.Damage = Data.Damage + 0.2
-    Data.MaxFireDelay = math.min(Data.MaxFireDelay + 0.75,5)
-    Data.TearRange = Data.TearRange + 8
+    local Data = mod:repmGetPData(player)
+    Data.Bloody_MoveSpeed = (Data.Bloody_MoveSpeed or 0) + 0.15
+    Data.Bloody_Damage = (Data.Bloody_Damage or 0) + 0.2
+    Data.Bloody_MaxFireDelay = math.min((Data.Bloody_MaxFireDelay or 0) + 0.75,5)
+    Data.Bloody_TearRange = (Data.Bloody_TearRange or 0) + 8
     Player:AddCacheFlags(CacheFlag.CACHE_ALL,true)
     return true
 end,StatsUpItem)
@@ -2203,18 +2203,18 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE,function (_,Player,Cache)
     if Player:GetPlayerType() ~= Minusaac then
         return
     end
-    local Data = Player:GetData().RepMinus.StatsDowns
+    local Data = mod:repmGetPData(Player)
     if Cache == CacheFlag.CACHE_SPEED then
-        Player.MoveSpeed = Player.MoveSpeed + Data.MoveSpeed
+        Player.MoveSpeed = Player.MoveSpeed + (Data.Bloody_MoveSpeed or 0)
     end
     if Cache == CacheFlag.CACHE_DAMAGE then
-        Player.Damage = Player.Damage + Data.Damage
+        Player.Damage = Player.Damage + (Data.Bloody_Damage or 0)
     end
     if Cache == CacheFlag.CACHE_FIREDELAY then
-        Player.MaxFireDelay = Player.MaxFireDelay - Data.MaxFireDelay
+        Player.MaxFireDelay = Player.MaxFireDelay - (Data.Bloody_MaxFireDelay or 0)
     end
     if Cache == CacheFlag.CACHE_RANGE then
-        Player.TearRange = Player.TearRange + Data.TearRange
+        Player.TearRange = Player.TearRange + (Data.Bloody_TearRange or 0)
     end
 end)
 
@@ -2235,11 +2235,11 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG,function (_,Entity,_,DamageFlags
         Player:GetPlayerType() ~= Minusaac then
         return
     end
-    local Data = Player:GetData().RepMinus.StatsDowns
-    Data.MoveSpeed = Data.MoveSpeed - 0.1
-    Data.Damage = Data.Damage - 0.15
-    Data.MaxFireDelay = Data.MaxFireDelay - 0.65
-    Data.TearRange = Data.TearRange - 6
+    local Data = mod:repmGetPData(Player)
+    Data.Bloody_MoveSpeed = (Data.Bloody_MoveSpeed or 0) - 0.1
+    Data.Bloody_Damage = (Data.Bloody_Damage or 0) - 0.15
+    Data.Bloody_MaxFireDelay = (Data.Bloody_MaxFireDelay or 0) - 0.65
+    Data.Bloody_TearRange = (Data.Bloody_TearRange or 0) - 6
     Player:AddCacheFlags(CacheFlag.CACHE_ALL,true)
 end,EntityType.ENTITY_PLAYER)
 
@@ -2391,11 +2391,11 @@ function AddFlag(...)
 end
 
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE,function (_,Player,Cache)
-    local Data = Player:GetData().RepMinus
-    if Data == nil or (Player:GetData().RepMinus ~= nil and Player:GetData().RepMinus.MinusShard == nil) then
+    local Data = mod:repmGetPData(Player)
+    if Data == nil or Data.MinusShard == nil then
         return
     end
-    Data = Player:GetData().RepMinus.MinusShard
+    Data = Data.MinusShard
     if Cache == CacheFlag.CACHE_SPEED then
         Player.MoveSpeed = Player.MoveSpeed + Data.MoveSpeed
     end
@@ -2416,7 +2416,7 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG,function (_,Entity,_,DamageFlags
         return
     end
     local Player = Entity:ToPlayer()
-    local Data = Player:GetData().RepMinus
+    local Data = mod:repmGetPData(Player)
     if Data == nil or (Data ~= nil and Data.MinusShard == nil) or (Data ~= nil and Data.MinusShard ~= nil and Data.MinusShard.Rooms <= 0) then 
         return
     end
@@ -2432,7 +2432,7 @@ end,EntityType.ENTITY_PLAYER)
 mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD,function ()
     for i=1,game:GetNumPlayers() do
         local Player = Isaac.GetPlayer(i-1)
-        local Data = Player:GetData().RepMinus
+        local Data = mod:repmGetPData(Player)
         if (Data ~= nil and Data.MinusShard ~= nil and Data.MinusShard.Rooms > 0) then 
             SFXManager():Play(268,1,0,false,1.5)
             Player:SetColor(Color(1,1,1,1,0,1,0),15,0,true,true)
@@ -2449,7 +2449,7 @@ end)
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER,function ()
     for i=1,game:GetNumPlayers() do
         local Player = Isaac.GetPlayer(i-1)
-        local Data = Player:GetData().RepMinus
+        local Data = mod:repmGetPData(Player)
         if Data ~= nil and (Data ~= nil and Data.MinusShard ~= nil) and Data.MinusShard.Sprite ~= nil then
             Data.MinusShard.Sprite:Render(Isaac.WorldToScreen(Player.Position))
             Data.MinusShard.Sprite:Update()
@@ -2469,12 +2469,9 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER,function ()
 end)
 ---@param Player EntityPlayer
 mod:AddCallback(ModCallbacks.MC_USE_CARD,function (_,_,Player)
-    local Data = Player:GetData()
-    if Data.RepMinus == nil then 
-        Data.RepMinus = {}
-    end
-    if Data.RepMinus.MinusShard == nil then
-        Data.RepMinus.MinusShard = {
+    local Data = mod:repmGetPData(Player)
+    if Data.MinusShard == nil then
+        Data.MinusShard = {
             Rooms = 0,
             Damage = 0,
             MoveSpeed = 0,
@@ -2483,11 +2480,11 @@ mod:AddCallback(ModCallbacks.MC_USE_CARD,function (_,_,Player)
             Sprite = Sprite()
         }
     end
-    Data.RepMinus.MinusShard.Sprite = Sprite()
-    Data.RepMinus.MinusShard.Sprite:Load("gfx/MinusStatus.anm2",true)
-    Data.RepMinus.MinusShard.Sprite:Play("Idle",true)
+    Data.MinusShard.Sprite = Sprite()
+    Data.MinusShard.Sprite:Load("gfx/MinusStatus.anm2",true)
+    Data.MinusShard.Sprite:Play("Idle",true)
 
-    Data.RepMinus.MinusShard.Rooms = Data.RepMinus.MinusShard.Rooms + 2
+    Data.MinusShard.Rooms = Data.MinusShard.Rooms + 2
     local Effect = Isaac.Spawn(EntityType.ENTITY_EFFECT,16,1,Player.Position,Vector(0,0),Player)
     Effect.Color = Color(0.75,0,0,0.5)
     for _=1,12 do
@@ -2497,11 +2494,11 @@ mod:AddCallback(ModCallbacks.MC_USE_CARD,function (_,_,Player)
     end
     Player:SetColor(Color(1,1,1,1,1,0,0),60,0,true,true)
     SFXManager():Play(33,1,0,false,1.5)
-    local Data = Player:GetData().RepMinus.MinusShard
-    Data.MoveSpeed = Data.MoveSpeed - 0.1
-    Data.Damage = Data.Damage - 0.75
-    Data.MaxFireDelay = Data.MaxFireDelay - 1
-    Data.TearRange = Data.TearRange - 25
+
+    Data.MinusShard.MoveSpeed = Data.MinusShard.MoveSpeed - 0.1
+    Data.MinusShard.Damage = Data.MinusShard.Damage - 0.75
+    Data.MinusShard.MaxFireDelay = Data.MinusShard.MaxFireDelay - 1
+    Data.MinusShard.TearRange = Data.MinusShard.TearRange - 25
     Player:AddCacheFlags(CacheFlag.CACHE_ALL,true)
 end,Isaac.GetCardIdByName("MinusShard"))
 
@@ -2522,7 +2519,6 @@ whiteColor:SetTint(20, 20, 20, 2)
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, player, cache_flag)
     if cache_flag == CacheFlag.CACHE_FAMILIARS then
         local familiar_count = player:GetCollectibleNum(CollectibleType.COLLECTIBLE_TSUNDERE_FLY) * 2
-        --print(familiar_count)
         player:CheckFamiliar(tsunFlyVar, familiar_count, player:GetCollectibleRNG(CollectibleType.COLLECTIBLE_TSUNDERE_FLY))
     end
 end
@@ -2640,13 +2636,6 @@ function mod:loadData(isSave)
 end
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.loadData)
 
-function mod:repmGetPData(player)
-    local data = player:GetData()
-    if data.repmSaveData == nil then
-        data.repmSaveData = {}
-    end
-    return data.repmSaveData
-end
 
 --------------------------------------------------------------
 --FROSTY
@@ -2779,11 +2768,9 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
                     npc:GetData().RepM_Frosty_Sprite:Load("gfx/chill_status.anm2",true)
                     npc:GetData().RepM_Frosty_Sprite:Play("Idle")
                 end
-                local position = Isaac.WorldToScreen(npc.Position+npc:GetNullOffset("OverlayEffect"))--
-                --print(tostring(position.X) .. " " .. tostring(position.Y))
+                local position = Isaac.WorldToScreen(npc.Position+npc:GetNullOffset("OverlayEffect"))
                 npc:GetData().RepM_Frosty_Sprite:Render(position)
                 npc:GetData().RepM_Frosty_Sprite:Update()
-                --print("ding!")
             end
         end
     end
