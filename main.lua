@@ -362,7 +362,7 @@ function mod:PlayerHurt(TookDamage, DamageAmount, DamageFlags, DamageSource, Dam
 end
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.PlayerHurt, EntityType.ENTITY_PLAYER)
 
-
+local jawVariant = Isaac.GetEntityVariantByName("Antibirth Donkey Jawbone")
 function mod:JawboneUpdate(jawbone)
 	local player = jawbone.Parent:ToPlayer()
 	local sprite = jawbone:GetSprite()
@@ -371,28 +371,32 @@ function mod:JawboneUpdate(jawbone)
 		SFXManager():Stop(SoundEffect.SOUND_TEARS_FIRE)
 	else
 		jawbone:Remove()
+        local pdata = mod:repmGetPData(player)
+        pdata.SimAxeFlag = false
 		if ExtraSpins > 0 then
 			mod:SpawnJawbone(player)
 			ExtraSpins = ExtraSpins - 1
 		end
 	end
 end
-mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.JawboneUpdate, 1001)
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_UPDATE, mod.JawboneUpdate, jawVariant)
 
 function mod:MeatySound(entityTear, collider, low)
-	if collider:IsActiveEnemy(true) then
-		SFXManager():Play(SoundEffect.SOUND_MEATY_DEATHS)
+	if collider:IsActiveEnemy(true) and collider:GetData().RepmFlaggedForCrunch == true then
+		--SFXManager():Play(SoundEffect.SOUND_MEATY_DEATHS)
 	end
 end
-mod:AddCallback(ModCallbacks.MC_PRE_TEAR_COLLISION, mod.MeatySound, 1001)
+mod:AddCallback(ModCallbacks.MC_PRE_TEAR_COLLISION, mod.MeatySound, jawVariant)
 
 function mod:SpawnJawbone(player)
-	local jawbone = Isaac.Spawn(2, 1001, 0, player.Position, Vector.Zero, player):ToTear()
+	local jawbone = Isaac.Spawn(2, jawVariant, 0, player.Position, Vector.Zero, player):ToTear()
 	
 	jawbone.Parent = player
 	jawbone.EntityCollisionClass = EntityCollisionClass.ENTCOLL_ENEMIES
 	jawbone.GridCollisionClass = GridCollisionClass.COLLISION_SOLID
 	jawbone.CollisionDamage = (player.Damage * 3) + 10
+    jawbone:GetData().SimAxeFlag = true
+
 	jawbone:AddTearFlags(TEARFLAG(1) | TEARFLAG(2) | TEARFLAG(34)) --piercing, spectral, shielding, and hp drop
 	if player:HasCollectible(CollectibleType.COLLECTIBLE_IPECAC) then
 		jawbone:AddTearFlags(TEARFLAG(4)) -- poison
@@ -441,6 +445,22 @@ end
 	SFXManager():Play(SoundEffect.SOUND_SWORD_SPIN)
 end
 
+function mod:ExemptHalfCircle(Entity, DamageAmount, DamageFlags, DamageSource, DamageCountdownFrames)
+    if DamageSource.Entity and DamageSource.Entity:ToTear() and DamageSource.Entity:ToTear():GetData().SimAxeFlag == true then
+        --and DamageSource.Entity:GetData().SimAxeFlag == true
+        local playerSource = mod:GetPlayerFromTear(DamageSource.Entity)
+        local direction = playerSource:GetHeadDirection()
+        if (direction == Direction.LEFT and (playerSource.Position.X < Entity.Position.X)) or
+        (direction == Direction.RIGHT and (playerSource.Position.X > Entity.Position.X)) or 
+        (direction == Direction.UP and (playerSource.Position.Y < Entity.Position.Y)) or
+        (direction == Direction.DOWN and (playerSource.Position.Y > Entity.Position.Y)) then
+            return false
+        else
+            SFXManager():Play(SoundEffect.SOUND_MEATY_DEATHS)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.ExemptHalfCircle)
 
 local SimType = Isaac.GetPlayerTypeByName("Sim", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
 local hairCostume = Isaac.GetCostumeIdByPath("gfx/characters/sim_hair.anm2") -- Exact path, with the "resources" folder as the root
@@ -3648,7 +3668,14 @@ function mod:OnEnhancedStrengthB(card, player, useflags)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedStrengthB, Card.CARD_REVERSE_STRENGTH)
 
+----------------------------------------------------------
+--Sim's Axe
+----------------------------------------------------------
+local axeItemActive = Isaac.GetItemIdByName("Sim's Axe")
+function mod:onUseAxe(collectibletype, rng, player, useflags, slot, vardata)
 
+end
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.onUseAxe, axeItemActive)
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------

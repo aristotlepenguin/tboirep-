@@ -48,6 +48,7 @@
 	<passive name="Friendly Rocks" description="I loves my rocks!" gfx="Friendly Rocks.png" quality = "1"/>
 	<passive name="Like" description="Farm for them" gfx="Like.png"/>
 	<passive id="234" name="test" description="it oozes..." gfx="leaky bucket.png" />
+	<active name="Sim's Axe" description="Timber!" gfx="Sim Axe.png" maxcharges="3"/>
 <!-- Trinkets -->
 	<trinket name="micro amplifier" description="STOP!" gfx="microamplifier.png" />
 	<trinket name="burned clover" description="luck lasts" gfx="Clover.png" />
