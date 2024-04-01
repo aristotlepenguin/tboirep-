@@ -321,6 +321,9 @@ local Wiki = {
 }
 
 
+----------------------------------------------------------
+--Sim's Axe
+----------------------------------------------------------
 
 if Encyclopedia then
 	Encyclopedia.AddItem({
@@ -344,23 +347,16 @@ function mod:PostNewRoom()
 end
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.PostNewRoom)
 
-function mod:PlayerHurt(TookDamage, DamageAmount, DamageFlags, DamageSource, DamageCountdownFrames)
-	local player = TookDamage:ToPlayer()
-	if player:HasCollectible(mod.COLLECTIBLE_DONKEY_JAWBONE) then
-		if player:HasCollectible(CollectibleType.COLLECTIBLE_20_20) then
-			ExtraSpins = ExtraSpins + 1
-		end
-		if player:HasCollectible(CollectibleType.COLLECTIBLE_INNER_EYE) then
-			ExtraSpins = ExtraSpins + 2
-		end
-		if player:HasCollectible(CollectibleType.COLLECTIBLE_MUTANT_SPIDER) then
-			ExtraSpins = ExtraSpins + 3
-		end
-		
-		mod:SpawnJawbone(player)
+function mod:onUseAxe(collectibletype, rng, player, useflags, slot, vardata)
+	if player:HasCollectible(CollectibleType.COLLECTIBLE_CAR_BATTERY) then
+		ExtraSpins = ExtraSpins + 1
 	end
+	mod:SpawnJawbone(player)
 end
-mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.PlayerHurt, EntityType.ENTITY_PLAYER)
+local axeItemActive = Isaac.GetItemIdByName("Sim's Axe")
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.onUseAxe, axeItemActive)
+
+--mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.PlayerHurt, EntityType.ENTITY_PLAYER)
 
 local jawVariant = Isaac.GetEntityVariantByName("Antibirth Donkey Jawbone")
 function mod:JawboneUpdate(jawbone)
@@ -464,6 +460,52 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.ExemptHalfCircle)
 
 local SimType = Isaac.GetPlayerTypeByName("Sim", false) -- Exactly as in the xml. The second argument is if you want the Tainted variant.
 local hairCostume = Isaac.GetCostumeIdByPath("gfx/characters/sim_hair.anm2") -- Exact path, with the "resources" folder as the root
+
+local chargebarFrames = 235
+local AxeHud = Sprite()
+AxeHud:Load("gfx/chargebar_axe.anm2", true)
+local framesToCharge = 141
+local axeRenderedPosition = Vector(20, -27)
+
+function mod:renderSimCharge(player)
+    if player:GetPlayerType() == SimType then
+        local data = player:GetData()
+        data.RepM_SimChargeFrames = data.RepM_SimChargeFrames or 0
+        local maxThreshold = data.RepM_SimChargeFrames
+        local aim = player:GetAimDirection()
+        local isAim = aim:Length() > 0.01 
+        
+        if isAim then
+            data.RepM_SimChargeFrames = (data.RepM_SimChargeFrames or 0) + 1
+        else
+            data.RepM_SimChargeFrames = 0
+        end
+        
+        if maxThreshold > framesToCharge and data.RepM_SimChargeFrames == 0 then
+            data.repM_fireAxe = true
+        end
+
+        if data.RepM_SimChargeFrames > 0 and data.RepM_SimChargeFrames <= framesToCharge then
+            local frameToSet = math.floor(math.min(data.RepM_SimChargeFrames * (100/framesToCharge), 100))
+            AxeHud:SetFrame("Charging", frameToSet)
+            AxeHud:Render(Isaac.WorldToScreen(player.Position) + axeRenderedPosition)
+        elseif data.RepM_SimChargeFrames > framesToCharge then
+            local frameToSet = math.floor(((data.RepM_SimChargeFrames-framesToCharge))/2) % 6
+            AxeHud:SetFrame("Charged", frameToSet)
+            AxeHud:Render(Isaac.WorldToScreen(player.Position) + axeRenderedPosition)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.renderSimCharge)
+
+
+function mod:onFireAxe(player)
+    if player:GetData().repM_fireAxe == true then
+        player:GetData().repM_fireAxe = false
+        
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.onFireAxe)
 
 function mod:GiveCostumesOnInit(player)
     if player:GetPlayerType() ~= SimType then
@@ -3668,14 +3710,7 @@ function mod:OnEnhancedStrengthB(card, player, useflags)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedStrengthB, Card.CARD_REVERSE_STRENGTH)
 
-----------------------------------------------------------
---Sim's Axe
-----------------------------------------------------------
-local axeItemActive = Isaac.GetItemIdByName("Sim's Axe")
-function mod:onUseAxe(collectibletype, rng, player, useflags, slot, vardata)
 
-end
-mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.onUseAxe, axeItemActive)
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------
