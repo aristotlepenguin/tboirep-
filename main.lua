@@ -34,6 +34,14 @@ function mod.StoreSaveData()
     saveTable.MenuData = mod.MenuData
 end
 
+mod.directionToVector = {
+    [Direction.LEFT] = Vector(-1, 0),
+	[Direction.UP] = Vector(0, -1),
+	[Direction.RIGHT] = Vector(1, 0),
+	[Direction.DOWN] = Vector(0, 1),
+    [Direction.NO_DIRECTION] = Vector(0, 1)
+}
+
 function mod:GetPlayerFromTear(tear)
     for i=1, 2 do
         local check = nil
@@ -502,10 +510,105 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.renderSimCharge)
 function mod:onFireAxe(player)
     if player:GetData().repM_fireAxe == true then
         player:GetData().repM_fireAxe = false
-        
+        local direction = mod.directionToVector[player:GetHeadDirection()] * (25 * player.ShotSpeed)
+        local tear = player:FireTear(player.Position, direction, false, true, false, nil, 3)
+        tear.Scale = tear.Scale * 1.5
+        tear:AddTearFlags(TearFlags.TEAR_BOOMERANG | TearFlags.TEAR_PIERCING | TearFlags.TEAR_SPECTRAL)
+        tear:GetData().repm_IsAxeCharge = true
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.onFireAxe)
+
+
+
+
+local function getTearScale13(tear)
+	local sprite = tear:GetSprite()
+	local scale = tear.Scale
+	local sizeMulti = tear.SizeMulti
+	local flags = tear.TearFlags
+	
+	if scale > 2.55 then
+        return Vector((scale * sizeMulti.X) / 2.55, (scale * sizeMulti.Y) / 2.55)
+	elseif flags & TearFlags.TEAR_GROW == TearFlags.TEAR_GROW or flags & TearFlags.TEAR_LUDOVICO == TearFlags.TEAR_LUDOVICO then
+		if scale <= 0.3 then
+			return Vector((scale * sizeMulti.X) / 0.25, (scale * sizeMulti.Y) / 0.25)
+		elseif scale <= 0.55 then
+			local adjustedBase = math.ceil((scale - 0.175) / 0.25) * 0.25 + 0.175
+			return Vector((scale * sizeMulti.X) / adjustedBase, (scale * sizeMulti.Y) / adjustedBase)
+		elseif scale <= 1.175 then
+			local adjustedBase = math.ceil((scale - 0.175) / 0.125) * 0.125 + 0.175
+			return Vector((scale * sizeMulti.X) / adjustedBase, (scale * sizeMulti.Y) / adjustedBase)
+		elseif scale <= 2.175 then
+			local adjustedBase = math.ceil((scale - 0.175) / 0.25) * 0.25 + 0.175
+			return Vector((scale * sizeMulti.X) / adjustedBase, (scale * sizeMulti.Y) / adjustedBase)
+		else
+			return Vector((scale * sizeMulti.X) / 2.55, (scale * sizeMulti.Y) / 2.55)
+		end
+    else
+        return sizeMulti
+	end
+end
+
+function mod:axeTearRender(tear, offset)
+	local data = tear:GetData()
+    if data.repm_IsAxeCharge == nil then
+        return
+    end
+
+	local sprite = saveTable.AxeDefaultSprite
+	if not saveTable.AxeDefaultSprite then
+		sprite = Sprite()
+		sprite:Load("gfx/axe_tear_.anm2", true)
+		sprite:LoadGraphics()
+		saveTable.AxeDefaultSprite = sprite
+	end
+
+	local tearsprite = tear:GetSprite()
+	local scale = tear.Scale
+	local flags = tear.TearFlags
+
+	local anim
+	if scale <= 0.3 then
+		anim = "Rotate1"
+	elseif scale <= 0.8 then
+		anim = "Rotate2"
+	elseif scale <= 1.175 then
+		anim = "Rotate3"
+	elseif scale <= 1.925 then
+		anim = "Rotate4"
+	else
+		anim = "Rotate5"
+	end
+    
+	sprite.PlaybackSpeed = tearsprite.PlaybackSpeed
+	if not sprite:IsPlaying(anim) then
+		local frame = sprite:GetFrame()
+		sprite:Play(anim, true)
+		sprite:SetFrame(frame)
+	elseif not game:IsPaused() and Isaac.GetFrameCount() % 2 == 0 and data.REPM_LastRenderFrame ~= Isaac.GetFrameCount() then
+		sprite:Update()
+        --print(sprite:GetFrame())
+	end
+
+	local spritescale = getTearScale13(tear)
+	sprite.Scale = spritescale
+	sprite.Color = tearsprite.Color
+    tearsprite:ReplaceSpritesheet(0, "gfx/blank.png")
+    tearsprite:LoadGraphics()
+    --tear.Visible = false
+    --tear:GetSprite():LoadGraphics()
+
+---@diagnostic disable-next-line: param-type-mismatch
+    --print(tear.Position + tear.PositionOffset)
+
+    --print(Isaac.WorldToRenderPosition(tear.Position + tear.PositionOffset) + offset)
+	sprite:Render(Isaac.WorldToRenderPosition(tear.Position + tear.PositionOffset) + offset, Vector.Zero, Vector.Zero)
+	data.REPM_LastRenderFrame = Isaac.GetFrameCount()
+end
+mod:AddCallback(ModCallbacks.MC_POST_TEAR_RENDER, mod.axeTearRender)
+
+
 
 function mod:GiveCostumesOnInit(player)
     if player:GetPlayerType() ~= SimType then
@@ -2847,7 +2950,7 @@ local NumbHeartAchId = Isaac.GetAchievementIdByName("NumbHeart")
     --Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
 
 function mod:Anm()
-    if game:GetFrameCount() == 1 and mod.MenuData.StartThumbsUp ~= 2 then
+    if game:GetFrameCount() == 1 and mod.MenuData and mod.MenuData.StartThumbsUp ~= 2 then
         local player = Isaac.GetPlayer(0)
         player:AnimateHappy()
     end 
