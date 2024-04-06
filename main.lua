@@ -506,15 +506,30 @@ function mod:renderSimCharge(player)
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.renderSimCharge)
 
+function mod:getTearDuplicateAmt(player)
+    return 1 + player:GetCollectibleNum(CollectibleType.COLLECTIBLE_20_20) + (player:GetCollectibleNum(CollectibleType.COLLECTIBLE_INNER_EYE) * 2) + (player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MUTANT_SPIDER) * 3)
+end
+
+function mod:adjustAngle_SIM(velocity, stream, totalstreams)
+    local multiplicator = velocity:Length()
+    local angleAdjustment = 10 * (stream-1) - 5 * (totalstreams-1)
+    local correctAngle = velocity:GetAngleDegrees() + angleAdjustment
+    return Vector.FromAngle(correctAngle) * multiplicator
+end
+
 
 function mod:onFireAxe(player)
     if player:GetData().repM_fireAxe == true then
         player:GetData().repM_fireAxe = false
         local direction = mod.directionToVector[player:GetHeadDirection()] * (25 * player.ShotSpeed)
-        local tear = player:FireTear(player.Position, direction, false, true, false, nil, 3)
-        tear.Scale = tear.Scale * 1.5
-        tear:AddTearFlags(TearFlags.TEAR_BOOMERANG | TearFlags.TEAR_PIERCING | TearFlags.TEAR_SPECTRAL)
-        tear:GetData().repm_IsAxeCharge = true
+        local multiples = mod:getTearDuplicateAmt(player)
+        for y=1, multiples, 1 do
+            local new_dir = mod:adjustAngle_SIM(direction, y, multiples)
+            local tear = player:FireTear(player.Position, new_dir, false, true, false, nil, 3)
+            tear.Scale = tear.Scale * 1.5
+            tear:AddTearFlags(TearFlags.TEAR_BOOMERANG | TearFlags.TEAR_PIERCING | TearFlags.TEAR_SPECTRAL)
+            tear:GetData().repm_IsAxeCharge = true
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.onFireAxe)
@@ -614,7 +629,7 @@ function mod:GiveCostumesOnInit(player)
     if player:GetPlayerType() ~= SimType then
         return -- End the function early. The below code doesn't run, as long as the player isn't Gabriel.
     end
-
+    player:AddCollectible(axeItemActive, 3)
     player:AddNullCostume(hairCostume)
 end
 
