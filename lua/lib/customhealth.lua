@@ -235,7 +235,7 @@ CustomHealthAPI.Library.AddCallback("RepentanceMinus", CustomHealthAPI.Enums.Cal
             local angle = Vector.FromAngle(i) * 8
             local tear = player:FireTear(player.Position, angle, false, true, false, player, 1)
             --tear:ClearTearFlags()
-            player.TearFlags = BitSet128(0,0)
+            tear.TearFlags = BitSet128(0,0)
             tear:AddTearFlags(TearFlags.TEAR_ICE)
             tear:ChangeVariant(41)
         end
