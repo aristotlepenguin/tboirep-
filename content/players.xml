@@ -6,12 +6,12 @@
           nameimage="sim.png" 
           portrait="BigTemplatePortrait.png" 
           bigportrait="BigTemplatePortrait.png" skinColor="-1"
-		  birthright="not done" />
+		  birthright="More axes" />
 	<player name="Minusaac" skin="minus.png" hp="6" bombs="0"
           nameimage="minus.png" 
           portrait="Musaacis.png" 
           bigportrait="Musaacis.png" skinColor="-1"
-		  birthright="not done" />
+		  birthright="Upward trajectory" />
     <player name="Minusaac" bSkinParent="Minusaacb" skin="character_miusaacb.png" armor="2" canShoot="true" costume="95"
           nameimage="playername_guppy.png"
           portrait="null.png"
