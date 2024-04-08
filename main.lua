@@ -17,7 +17,9 @@ include("lua/lib/customhealth.lua")
 
 local hiddenItemManager = require("lua.lib.hidden_item_manager")
 hiddenItemManager:Init(mod)
-
+local familiarRNG = RNG()
+local level
+local sfx = SFXManager()
 
 function mod.GetMenuSaveData()
     if not mod.MenuData then
@@ -184,7 +186,6 @@ function mod:removeLightning(EntityNPC) --Remove the lightning
 		Lightning:Remove()
 	end
 end
-
 mod:AddCallback(ModCallbacks.MC_NPC_UPDATE, mod.removeLightning, EntityType.ENTITY_EFFECT, 2643, mod.LIGHTNING_EFFECT)
 
 function mod:fireNoCollide(EntityEffect)
@@ -270,29 +271,43 @@ function mod:updateCache_AllStats(_player, cacheFlag)
 	    if player:HasCollectible(Items.ID_ALLStatsItem) then 
 		    player.Damage = player.Damage +0.5
 		end
+        if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and player:GetName() == "Minusaac" then 
+		    player.Damage = player.Damage + 0.7
+		end
 	end	
     if cacheFlag == CacheFlag.CACHE_LUCK then
 	    if player:HasCollectible(Items.ID_ALLStatsItem) then 
 		    player.Luck = player.Luck +0.5
+		end
+        if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and player:GetName() == "Minusaac" then 
+		    player.Luck = player.Luck + 1
 		end
 	end	
 	if cacheFlag == CacheFlag.CACHE_SPEED then
 	    if player:HasCollectible(Items.ID_ALLStatsItem) then 
 		    player.MoveSpeed = player.MoveSpeed +0.5
 		end
+        if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and player:GetName() == "Minusaac" then 
+		    player.MoveSpeed = player.MoveSpeed + 0.2
+		end
 	end
     if cacheFlag == CacheFlag.CACHE_FIREDELAY then
 	    if player:HasCollectible(Items.ID_ALLStatsItem) then 
-		    player.MaxFireDelay = player.MaxFireDelay -1;
+		    player.MaxFireDelay = player.MaxFireDelay -1
+		end
+        if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and player:GetName() == "Minusaac" then 
+		    player.MaxFireDelay = player.MaxFireDelay -1
 		end
 	end
     if cacheFlag == CacheFlag.CACHE_RANGE then
 	    if player:HasCollectible(Items.ID_ALLStatsItem) then 
-		    player.TearRange = player.TearRange + 40 * 0.5;
+		    player.TearRange = player.TearRange + 40 * 0.5
+		end
+        if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and player:GetName() == "Minusaac" then 
+		    player.TearRange = player.TearRange + 40 * 0.5
 		end
 	end	
 end
-
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_AllStats)
 
 
@@ -517,7 +532,6 @@ function mod:adjustAngle_SIM(velocity, stream, totalstreams)
     return Vector.FromAngle(correctAngle) * multiplicator
 end
 
-
 function mod:onFireAxe(player)
     if player:GetData().repM_fireAxe == true then
         player:GetData().repM_fireAxe = false
@@ -526,15 +540,70 @@ function mod:onFireAxe(player)
         for y=1, multiples, 1 do
             local new_dir = mod:adjustAngle_SIM(direction, y, multiples)
             local tear = player:FireTear(player.Position, new_dir, false, true, false, nil, 3)
-            tear.Scale = tear.Scale * 1.5
+            SFXManager():Play(SoundEffect.SOUND_BIRD_FLAP)
+            
+            tear.Variant = TearVariant.SCHYTHE
             tear:AddTearFlags(TearFlags.TEAR_BOOMERANG | TearFlags.TEAR_PIERCING | TearFlags.TEAR_SPECTRAL)
             tear:GetData().repm_IsAxeCharge = true
         end
     end
+    if player:GetPlayerType() == SimType and not saveTable.SimAxesCollected then
+        saveTable.SimAxesCollected = 1
+    end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.onFireAxe)
 
+local PriceTextFontTempesta = Font()
+PriceTextFontTempesta:Load("font/pftempestasevencondensed.fnt")
 
+function mod:simUIAxeRender(player)
+    local isSim = false
+    mod:AnyPlayerDo(function(player)
+        if player:GetPlayerType() == SimType then
+            isSim = true
+            if Input.IsButtonTriggered(Keyboard.KEY_X, player.ControllerIndex) and saveTable.SimAxesCollected > 0  then --
+                player:GetData().repM_fireAxe = true
+                saveTable.SimAxesCollected = saveTable.SimAxesCollected -1
+            end
+        end
+    end)
+    if isSim then
+        if saveTable.uiAxeSprite == nil then
+            saveTable.uiAxeSprite = Sprite()
+            saveTable.uiAxeSprite:Load("gfx/ui/hudpickups.anm2", true)
+            saveTable.uiAxeSprite:Play("Idle")
+            saveTable.uiAxeSprite:SetFrame(12)
+        end
+
+        --print(saveTable.SimAxesCollected)
+        if game:GetHUD():IsVisible() then
+            local targetPos = Vector(30, 33) + game.ScreenShakeOffset + (Options.HUDOffset * Vector(20, 12))
+            PriceTextFontTempesta:DrawStringScaled(string.format("%02d", (saveTable.SimAxesCollected or 0)), targetPos.X+15, targetPos.Y, 1, 1, KColor(1, 1, 1, 1))
+            saveTable.uiAxeSprite:Render(targetPos)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.simUIAxeRender)
+
+
+function mod:OnRoomClear_SimAxes()
+    local room = game:GetRoom()
+    if room:GetType() == RoomType.ROOM_BOSS then
+        mod:AnyPlayerDo(function(player)
+            if player:GetPlayerType() == SimType then
+                randoMax = 1
+                if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
+                    randoMax = 2
+                end
+                local playerRNG = player:GetDropRNG()
+                saveTable.SimAxesCollected = (saveTable.SimAxesCollected or 0) + playerRNG:RandomInt(2) + randoMax
+                sfx:Play(SoundEffect.SOUND_THUMBSUP)
+                player:AnimateHappy()
+            end
+        end)
+    end 
+end
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.OnRoomClear_SimAxes)
 
 
 local function getTearScale13(tear)
@@ -754,9 +823,7 @@ local BeastConsts = {
     CENTER_GRACE = 2, -- The radius of which the beast considers room center
 }
 
-local familiarRNG = RNG()
-local level
-local sfx = SFXManager()
+
 
 
 if AltarFix and not AltarFix.AllowedVariants then
@@ -2369,11 +2436,12 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM,function (_,_,_,Player)
         Isaac.Spawn(EntityType.ENTITY_EFFECT,EffectVariant.BLOOD_PARTICLE,0,Player.Position,Vector(0,math.random(0,5)):Rotated(math.random(360)),nil)
         Player:SetMinDamageCooldown(90)
     end
-    local Data = mod:repmGetPData(player)
-    Data.Bloody_MoveSpeed = (Data.Bloody_MoveSpeed or 0) + 0.15
-    Data.Bloody_Damage = (Data.Bloody_Damage or 0) + 0.2
-    Data.Bloody_MaxFireDelay = math.min((Data.Bloody_MaxFireDelay or 0) + 0.75,5)
-    Data.Bloody_TearRange = (Data.Bloody_TearRange or 0) + 8
+    local Data = mod:repmGetPData(Player)
+    local birthNum = player:GetCollectibleNum(CollectibleType.COLLECTIBLE_BIRTHRIGHT)
+    Data.Bloody_MoveSpeed = (Data.Bloody_MoveSpeed or 0) + 0.15 + (0.3 * birthNum)
+    Data.Bloody_Damage = (Data.Bloody_Damage or 0) + 0.2 + (0.3 * birthNum)
+    Data.Bloody_MaxFireDelay = math.min((Data.Bloody_MaxFireDelay or 0) + 0.75 + (0.3 * birthNum),5)
+    Data.Bloody_TearRange = (Data.Bloody_TearRange or 0) + 8 + (24 * birthNum)
     Player:AddCacheFlags(CacheFlag.CACHE_ALL,true)
     return true
 end,StatsUpItem)
@@ -2412,7 +2480,8 @@ mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG,function (_,Entity,_,DamageFlags
         DamageFlags == AddFlag(2,28,30) or 
         DamageFlags == AddFlag(2,28,30) or 
         DamageFlags == AddFlag(5) or 
-        Player:GetPlayerType() ~= Minusaac then
+        Player:GetPlayerType() ~= Minusaac 
+        or Player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) then
         return
     end
     local Data = mod:repmGetPData(Player)
@@ -3049,6 +3118,58 @@ function mod:DebugText()
 end
 --mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.DebugText)
 
+local BasegameSegmentedEnemies = {
+	[35 .. " " .. 0] = true, -- Mr. Maw (body)
+	[35 .. " " .. 1] = true, -- Mr. Maw (head)
+	[35 .. " " .. 2] = true, -- Mr. Red Maw (body)
+	[35 .. " " .. 3] = true, -- Mr. Red Maw (head)
+	[89] = true, -- Buttlicker
+	[216 .. " " .. 0] = true, -- Swinger (body)
+	[216 .. " " .. 1] = true, -- Swinger (head)
+	[239] = true, -- Grub
+	[244 .. " " .. 2] = true, -- Tainted Round Worm
+
+	[19 .. " " .. 0] = true, -- Larry Jr.
+	[19 .. " " .. 1] = true, -- The Hollow
+	[19 .. " " .. 2] = true, -- Tuff Twins
+	[19 .. " " .. 3] = true, -- The Shell
+	[28 .. " " .. 0] = true, -- Chub
+	[28 .. " " .. 1] = true, -- C.H.A.D.
+	[28 .. " " .. 2] = true, -- The Carrion Queen
+	[62 .. " " .. 0] = true, -- Pin
+	[62 .. " " .. 1] = true, -- Scolex
+	[62 .. " " .. 2] = true, -- The Frail
+	[62 .. " " .. 3] = true, -- Wormwood
+	[79 .. " " .. 0] = true, -- Gemini
+	[79 .. " " .. 1] = true, -- Steven
+	[79 .. " " .. 10] = true, -- Gemini (baby)
+	[79 .. " " .. 11] = true, -- Steven (baby)
+	[92 .. " " .. 0] = true, -- Heart
+	[92 .. " " .. 1] = true, -- 1/2 Heart
+	[93 .. " " .. 0] = true, -- Mask
+	[93 .. " " .. 1] = true, -- Mask II
+	[97] = true, -- Mask of Infamy
+	[98] = true, -- Heart of Infamy
+	[266] = true, -- Mama Gurdy
+	[912 .. " " .. 0 .. " " .. 0] = true, -- Mother (phase one)
+	[912 .. " " .. 0 .. " " .. 2] = true, -- Mother (left arm)
+	[912 .. " " .. 0 .. " " .. 3] = true, -- Mother (right arm)
+	[918 .. " " .. 0] = true, -- Turdlet
+}
+
+function mod:isBasegameSegmented(entity)
+	return BasegameSegmentedEnemies[entity.Type] or
+		   BasegameSegmentedEnemies[entity.Type .. " " .. entity.Variant] or
+		   BasegameSegmentedEnemies[entity.Type .. " " .. entity.Variant .. " " .. entity.SubType]
+end
+
+local function checkEntityForChampionizing(entity)
+    return not npc:IsChampion() and 
+    not npc:IsBoss() and 
+    globalRng:RandomInt(8) == 1 and
+    not mod:isBasegameSegmented(npc) and 
+    entity.Type ~= EntityType.ENTITY_FIREPLACE
+end
 
 function mod:OnEntitySpawn_Polar(npc)
     local chosenPlayer
@@ -3058,7 +3179,7 @@ function mod:OnEntitySpawn_Polar(npc)
         end
     end)
     if chosenPlayer ~= nil then
-        if not npc:IsChampion() and not npc:IsBoss() and globalRng:RandomInt(8) == 1 then
+        if checkEntityForChampionizing(npc) == true then
             npc:MakeChampion(globalRng:GetSeed())
         end
     end
@@ -3353,6 +3474,22 @@ function mod:updateCache_Fountain(player, cacheFlag)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Fountain)
 
+function mod:spawnFountBehavior()
+    local room = game:GetRoom()
+    if room:IsFirstVisit() then
+        local confessionals = Isaac.FindByType(EntityType.ENTITY_SLOT, 17)
+        for i, confess in ipairs(confessionals) do
+            local rng = confess:GetDropRNG()
+            if rng:RandomInt(100)+1 <= 50 then
+                local pos = confess.Position
+                confess:Remove()
+                Isaac.Spawn(6, fountainType, 0, pos, Vector.Zero, nil)
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.spawnFountBehavior)
+
 ----------------------------------------------------------
 --RED LIGHT GREEN LIGHT
 ----------------------------------------------------------
@@ -3643,7 +3780,7 @@ mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onBlueBabyFrostyKill, Enti
 function mod:onMomHeartKill(entity)
     local FrostyDone = false
     local SimDone = false
-    local MinusIsaacDone = false
+    --local MinusIsaacDone = false
 
     mod:AnyPlayerDo(function(player)
         if player:GetPlayerType() == frostType or Isaac.GetCompletionMark(frostType, 0) then
@@ -3652,11 +3789,11 @@ function mod:onMomHeartKill(entity)
         if player:GetPlayerType() == SimType or Isaac.GetCompletionMark(SimType, 0) then
             SimDone = true
         end
-        if player:GetPlayerType() == Minusaac or Isaac.GetCompletionMark(Minusaac, 0) then
-            MinusIsaacDone = true
-        end
+        --if player:GetPlayerType() == Minusaac or Isaac.GetCompletionMark(Minusaac, 0) then
+            --MinusIsaacDone = true
+        --end
     end)
-    if FrostyDone and SimDone and MinusIsaacDone then 
+    if FrostyDone and SimDone then 
         Isaac.GetPersistentGameData():TryUnlock(ImprovedCardsAchId)
     end
 end

@@ -243,8 +243,6 @@ CustomHealthAPI.Library.AddCallback("RepentanceMinus", CustomHealthAPI.Enums.Cal
 end)
 
 
-
-
 --------------------------------------------------------------------
 
 -------------
