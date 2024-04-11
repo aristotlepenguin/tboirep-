@@ -521,6 +521,43 @@ function mod:renderSimCharge(player)
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.renderSimCharge)
 
+local axeEntity = Isaac.GetEntityVariantByName("Sim Axe Pickup")
+function mod:onUpdatePickupDrops()
+    local axes = Isaac.FindByType(5, axeEntity, 1)
+    for i, axe in ipairs(axes) do
+        if axe:GetSprite():GetFrame() >= 6 and axe:GetSprite():GetAnimation() == "Collect" then
+			axe:Remove()
+		elseif axe:GetSprite():IsEventTriggered("DropSound") then
+            sfx:Play(SoundEffect.SOUND_GOLD_HEART_DROP, 2)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.onUpdatePickupDrops)
+
+
+function mod:OnCollideAxe(entity, Collider, Low)
+
+    local player = Collider:ToPlayer()
+    local data = Collider:GetData()
+
+    if player == nil then
+        return nil
+    end
+
+    if entity.Type == EntityType.ENTITY_PICKUP and entity.Variant == axeEntity and entity:GetData().Collected ~= true and player:GetPlayerType() == SimType then
+        entity:GetData().Collected = true
+        entity:GetSprite():Play("Collect")
+        sfx:Play(SoundEffect.SOUND_SCAMPER)
+        saveTable.SimAxesCollected = (saveTable.SimAxesCollected or 0) + 1
+    elseif entity.Type == EntityType.ENTITY_PICKUP and entity.Variant == axeEntity and player:GetPlayerType() ~= SimType then
+        return false
+    elseif entity.Type == EntityType.ENTITY_PICKUP and entity.Variant == axeEntity then
+        return true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, mod.OnCollideAxe)
+
+
 function mod:getTearDuplicateAmt(player)
     return 1 + player:GetCollectibleNum(CollectibleType.COLLECTIBLE_20_20) + (player:GetCollectibleNum(CollectibleType.COLLECTIBLE_INNER_EYE) * 2) + (player:GetCollectibleNum(CollectibleType.COLLECTIBLE_MUTANT_SPIDER) * 3)
 end
@@ -596,9 +633,19 @@ function mod:OnRoomClear_SimAxes()
                     randoMax = 2
                 end
                 local playerRNG = player:GetDropRNG()
-                saveTable.SimAxesCollected = (saveTable.SimAxesCollected or 0) + playerRNG:RandomInt(2) + randoMax
-                sfx:Play(SoundEffect.SOUND_THUMBSUP)
-                player:AnimateHappy()
+                --saveTable.SimAxesCollected = (saveTable.SimAxesCollected or 0) + playerRNG:RandomInt(2) + randoMax
+                --sfx:Play(SoundEffect.SOUND_THUMBSUP)
+                --player:AnimateHappy()
+                local numReps = playerRNG:RandomInt(2) + randoMax
+
+                for i=1, numReps, 1 do
+                    Isaac.Spawn(5,
+                    axeEntity,
+                    1,
+                    game:GetRoom():FindFreePickupSpawnPosition(game:GetRoom():GetCenterPos()),
+                    Vector(playerRNG:RandomFloat() - .5, playerRNG:RandomFloat() - .5) * Vector(2, 2),
+                    nil)
+                end
             end
         end)
     end 
@@ -3651,11 +3698,11 @@ function mod:onPlayerUpdate_Like(player)
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.onPlayerUpdate_Like)
 
-
+local frozenFood = Isaac.GetItemIdByName("Frozen Food")
 function mod:likeCache(player, cacheFlag)
     local pdata = mod:repmGetPData(player)
     if cacheFlag == CacheFlag.CACHE_DAMAGE then
-        player.Damage = player.Damage + (0.4 * (pdata.Like_AllBonus or 0))
+        player.Damage = player.Damage + (0.4 * (pdata.Like_AllBonus or 0)) + player:GetCollectibleNum(frozenFood)
     elseif cacheFlag == CacheFlag.CACHE_FIREDELAY then
         local tearstoadd = (0.4 * (pdata.Like_AllBonus or 0))
         player.MaxFireDelay = tearsUp(player.MaxFireDelay, tearstoadd)
@@ -3964,6 +4011,8 @@ function mod:OnEnhancedStrengthB(card, player, useflags)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedStrengthB, Card.CARD_REVERSE_STRENGTH)
+
+
 
 
 

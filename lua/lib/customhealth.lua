@@ -396,3 +396,12 @@ function mod:onUseNumbHeart(collectible, thisRng, player, useflags, activeslot, 
     }
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.onUseNumbHeart, numbHeartItem)
+
+
+
+local frozenFood = Isaac.GetItemIdByName("Frozen Food")
+function mod:OnGainFrozenFood()
+    CustomHealthAPI.Library.AddHealth(player, HeartKey[mod.HEART_ICE], 2, true)
+end
+mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE, mod.OnGainFrozenFood, frozenFood)
+

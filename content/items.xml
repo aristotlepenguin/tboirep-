@@ -47,8 +47,9 @@
 	<active name="Numb Heart" description="Reusable apathy" gfx="Numb Heart.png" maxcharges="6" achievement= "NumbHeart"/>
 	<passive name="Friendly Rocks" description="I loves my rocks!" gfx="Friendly Rocks.png" quality = "1"/>
 	<passive name="Like" description="Farm for them" gfx="Like.png"/>
-	<passive id="234" name="test" description="it oozes..." gfx="leaky bucket.png" />
+	<passive id="234" name="test" description="It oozes..." gfx="leaky bucket.png" />
 	<active name="Sim's Axe" description="Timber!" gfx="Sim Axe.png" maxcharges="3"/>
+	<active name="Frozen Food" description="HP up + brain freeze" gfx="frozen food.png" cache="damage"/>
 <!-- Trinkets -->
 	<trinket name="micro amplifier" description="STOP!" gfx="microamplifier.png" />
 	<trinket name="burned clover" description="luck lasts" gfx="Clover.png" />
