@@ -3569,7 +3569,7 @@ function mod:trafficRender()
 end
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.trafficRender)
 
-local saveTimer
+--local saveTimer
 
 local function IsMoving(player)
     local index = player.ControllerIndex
@@ -3579,8 +3579,8 @@ end
 function mod:changeLights()
     local frame = game:GetFrameCount()
     if Isaac.GetChallenge() == redLightChallenge  then
-        if not saveTimer then
-            saveTimer = 0
+        if not saveTable.saveTimer then
+            saveTable.saveTimer = 0
             if not saveTable.RedLightSign or saveTable.RedLightSign == "GreenLight" then
                 saveTable.RedLightSign = "RedLight"
             elseif saveTable.RedLightSign == "YellowLight" then
@@ -3589,15 +3589,15 @@ function mod:changeLights()
                 saveTable.RedLightSign = "YellowLight"
             end
         end
-        if frame > saveTimer then
+        if frame > saveTable.saveTimer then
             if saveTable.RedLightSign == "RedLight" then
-                saveTimer = frame + globalRng:RandomInt(1350) + 300
+                saveTable.saveTimer = frame + globalRng:RandomInt(1350) + 300
                 saveTable.RedLightSign = "GreenLight"
             elseif saveTable.RedLightSign == "YellowLight" then
-                saveTimer = frame + globalRng:RandomInt(300) + 30
+                saveTable.saveTimer = frame + globalRng:RandomInt(300) + 30
                 saveTable.RedLightSign = "RedLight"
             else
-                saveTimer = frame + 30
+                saveTable.saveTimer = frame + 30
                 saveTable.RedLightSign = "YellowLight"    
             end
         end
