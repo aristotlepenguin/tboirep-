@@ -717,9 +717,8 @@ function mod:axeTearRender(tear, offset)
 		local frame = sprite:GetFrame()
 		sprite:Play(anim, true)
 		sprite:SetFrame(frame)
-	elseif not game:IsPaused() and Isaac.GetFrameCount() % 2 == 0 and data.REPM_LastRenderFrame ~= Isaac.GetFrameCount() then
+	elseif not game:IsPaused() and Isaac.GetFrameCount() % 3 == 0 and data.REPM_LastRenderFrame ~= Isaac.GetFrameCount() then
 		sprite:Update()
-        --print(sprite:GetFrame())
 	end
 
 	local spritescale = getTearScale13(tear)
@@ -3211,10 +3210,10 @@ function mod:isBasegameSegmented(entity)
 end
 
 local function checkEntityForChampionizing(entity)
-    return not npc:IsChampion() and 
-    not npc:IsBoss() and 
+    return not entity:IsChampion() and 
+    not entity:IsBoss() and 
     globalRng:RandomInt(8) == 1 and
-    not mod:isBasegameSegmented(npc) and 
+    not mod:isBasegameSegmented(entity) and 
     entity.Type ~= EntityType.ENTITY_FIREPLACE
 end
 
@@ -3596,9 +3595,11 @@ function mod:changeLights()
             elseif saveTable.RedLightSign == "YellowLight" then
                 saveTable.saveTimer = frame + globalRng:RandomInt(300) + 30
                 saveTable.RedLightSign = "RedLight"
+                sfx:Play(SoundEffect.SOUND_BOSS2INTRO_ERRORBUZZ, 2)
             else
                 saveTable.saveTimer = frame + 30
-                saveTable.RedLightSign = "YellowLight"    
+                saveTable.RedLightSign = "YellowLight"    --SOUND_TOOTH_AND_NAIL_TICK
+                sfx:Play(469, 2)
             end
         end
         mod:AnyPlayerDo(function(player)

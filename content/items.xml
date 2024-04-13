@@ -9,7 +9,7 @@
 	<active name="book of tails" description="Zzzz..." gfx="book of tails.png" maxcharges="6"/>
 	<active maxcharges="2" description="explosion did not go according to plan" gfx="prokamikadze.png" name="PROkamikadze" />
 	<active id="111" name="Holy shell" description="help from above" gfx="holyshell.png" maxcharges="0"/>
-	<passive name="Sim axe" description="Come at me!" gfx="donkeyjawbone.png" quality="3" tags="nolostbr summonable"/>
+	<passive name="Sim axe" description="Come at me!" gfx="sim axe 2.png" quality="3" tags="nolostbr summonable"/>
 	<active maxcharges="4" description="Gooey" gfx="Curious heart.png" name="Curious Heart" />
 	<familiar name="Big Brim"
 		description= "Big brother of the lil brim"

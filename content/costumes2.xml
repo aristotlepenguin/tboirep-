@@ -11,8 +11,5 @@
 	<costume id="234" anm2path="mimi.anm2" type="passive" />
 </costumes>
 
-<costumes anm2root="gfx/characters/">
-	<costume id="Donkey Jawbone" anm2path="donkeyjawbone_costume.anm2" type="passive" />
-</costumes>
 
 
