@@ -1,0 +1,26 @@
+<players root="gfx/characters/costumes/" 
+         portraitroot="gfx/ui/boss/" 
+         nameimageroot="gfx/ui/boss/" 
+         bigportraitroot="gfx/ui/stage/">
+	<player id="3" name="Sim" skin="character_sim.png" hp="6" bombs="1"
+          nameimage="sim.png" 
+          portrait="BigTemplatePortrait.png" 
+          bigportrait="BigTemplatePortrait.png" skinColor="-1"
+		  birthright="More axes" />
+	<player name="Minusaac" skin="minus.png" hp="6" bombs="0"
+          nameimage="minus.png" 
+          portrait="Musaacis.png" 
+          bigportrait="Musaacis.png" skinColor="-1"
+		  birthright="Upward trajectory" />
+    <player name="Minusaac" bSkinParent="Minusaacb" skin="character_miusaacb.png" armor="2" canShoot="true" costume="95"
+          nameimage="playername_guppy.png"
+          portrait="null.png"
+		  extraportrait="playerportrait_guppyb.anm2"
+          skinColor="1" costumeSuffix="guppyb" />
+	<player name="Frosty" skin="character_frosty.png" hp="0" armor = "1" bombs="2" 
+          nameimage="frost.png" 
+          portrait="playerportrait_frosty.png" 
+          bigportrait="playerportrait_frosty.png" skinColor="2"
+		  birthright="not done" 
+		  achievement="Frosty" />
+</players>
