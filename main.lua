@@ -7,7 +7,7 @@ local mod = RegisterMod("tboirep-", 1.0)
 RepMMod = mod
 local json = require("json")
 local game = Game()
-local version = ": 0.7a" --added by me (pedro), for making updating version number easier
+local version = ": 0.8a" --added by me (pedro), for making updating version number easier
 print("Thanks for playing the TBOI REP NEGATIVE [Community Mod] - Currently running version"..tostring(version))
 local saveTable = {}
 local globalRng = RNG()
@@ -30,7 +30,6 @@ mod.RepmTypes.COLLECTIBLE_LIKE = Isaac.GetItemIdByName("Like")
 mod.RepmTypes.COLLECTIBLE_FROZEN_FOOD = Isaac.GetItemIdByName("Frozen Food")
 mod.RepmTypes.COLLECTIBLE_NUMB_HEART = Isaac.GetItemIdByName("Numb Heart")
 mod.RepmTypes.COLLECTIBLE_COKA_COLA = Isaac.GetItemIdByName("Cokacola") --Проверь имя предмета
-mod.RepmTypes.COLLECTIBLE_CIGARETTE = Isaac.GetItemIdByName("cigarette") --this isn't in items?
 mod.RepmTypes.COLLECTIBLE_SALAMI = Isaac.GetItemIdByName("Salami") 
 mod.RepmTypes.COLLECTIBLE_BOOK_OF_TAILS = Isaac.GetItemIdByName("book of tails")
 mod.RepmTypes.COLLECTIBLE_PRO_BACKSTABBER = Isaac.GetItemIdByName("PRObackstabber")
