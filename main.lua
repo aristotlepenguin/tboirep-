@@ -62,6 +62,7 @@ mod.RepmTypes.COLLECTIBLE_BOOK_OF_NECROMANCER = Isaac.GetItemIdByName("Book of n
 mod.RepmTypes.COLLECTIBLE_VHS =  Isaac.GetItemIdByName("VHS cassette")
 mod.RepmTypes.COLLECTIBLE_EXECUTIONER_HELMET = Isaac.GetItemIdByName("Executioner helmet")
 mod.RepmTypes.COLLECTIBLE_ROT = Isaac.GetItemIdByName("Rot")
+mod.RepmTypes.Collectible_BLOODY_NEGATIVE = Isaac.GetItemIdByName("Bloddy negative")
 
 mod.RepmTypes.TRINKET_POCKET_TECHNOLOGY = Isaac.GetTrinketIdByName("Pocket Techology")
 mod.RepmTypes.TRINKET_MICRO_AMPLIFIER = Isaac.GetTrinketIdByName("micro amplifier")
@@ -2145,7 +2146,7 @@ mod:AddCallback(ModCallbacks.MC_USE_ITEM, function()
 	--110V damage on using active part
 	for playerNum = 1, game:GetNumPlayers() do
 		local player = game:GetPlayer(playerNum)
-		if player:HasCollectible(mod.repmTypes.COLLECTIBLE_110V) then
+		if player:HasCollectible(mod.RepmTypes.COLLECTIBLE_110V) then
 			local maxCharge = Isaac.GetItemConfig():GetCollectible(player:GetActiveItem(0)).MaxCharges
 			if maxCharge == 2 or maxCharge == 3 then
 				player:TakeDamage(1, DamageFlag.DAMAGE_NO_PENALTIES | DamageFlag.DAMAGE_NOKILL | DamageFlag.DAMAGE_INVINCIBLE | DamageFlag.DAMAGE_NO_MODIFIERS, EntityRef(player), 0)
@@ -2167,7 +2168,7 @@ mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, function()
 	if game:GetFrameCount() > DiliriumEyeLastActivateFrame + 1 then
 		for playerNum = 1, game:GetNumPlayers() do
 			local player = game:GetPlayer(playerNum)
-			if player:HasCollectible(mod.repmTypes.COLLECTIBLE_DILIRIUM_EYE) then
+			if player:HasCollectible(mod.RepmTypes.COLLECTIBLE_DILIRIUM_EYE) then
 				if math.random(1,5) == 3 then
 				DiliriumEyeLastActivateFrame = game:GetFrameCount()
 					if player:GetFireDirection() == 0 then
@@ -2237,7 +2238,7 @@ function mod:onUpdate_Otmichka()
 local player = game:GetPlayer(playerNum)
 local spawnpos = game:GetRoom():FindFreeTilePosition(game:GetRoom():GetCenterPos(), 400)
 
-if player:HasCollectible(mod.repmTypes.Collectible_HOLY_OTMICHKA) then
+if player:HasCollectible(mod.RepmTypes.Collectible_HOLY_OTMICHKA) then
 		if math.random(1,7) == 5 then
 	Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_ETERNALCHEST, 0 , Vector(320,320), Vector(0,0), nil)
 			end
