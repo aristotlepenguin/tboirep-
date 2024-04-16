@@ -522,7 +522,9 @@ local hairCostume = Isaac.GetCostumeIdByPath("gfx/characters/sim_hair.anm2") -- 
 local chargebarFrames = 235
 local AxeHud = Sprite()
 AxeHud:Load("gfx/chargebar_axe.anm2", true)
-local framesToCharge = 141
+--local framesToCharge = 141
+local framesToCharge = 235
+--local framesToCharge = 20
 local axeRenderedPosition = Vector(20, -27)
 
 function mod:renderSimCharge(player)
@@ -535,7 +537,7 @@ function mod:renderSimCharge(player)
         
         if isAim then
             data.RepM_SimChargeFrames = (data.RepM_SimChargeFrames or 0) + 1
-        else
+        elseif not game:IsPaused() then
             data.RepM_SimChargeFrames = 0
         end
         
@@ -613,7 +615,7 @@ function mod:onFireAxe(player)
             local new_dir = mod:adjustAngle_SIM(direction, y, multiples)
             local tear = player:FireTear(player.Position, new_dir, false, true, false, nil, 3)
             SFXManager():Play(SoundEffect.SOUND_BIRD_FLAP)
-            
+            tear.Scale = tear.Scale * 0.5
             tear.Variant = TearVariant.SCHYTHE
             tear:AddTearFlags(TearFlags.TEAR_BOOMERANG | TearFlags.TEAR_PIERCING | TearFlags.TEAR_SPECTRAL)
             tear:GetData().repm_IsAxeCharge = true
@@ -827,7 +829,7 @@ end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Sim.onCache)
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
   if player:GetPlayerType() == SimType then 
-    player:SetPocketActiveItem(32, 2, true)
+    --player:SetPocketActiveItem(32, 2, true)
     player:AddCollectible(mod.RepmTypes.COLLECTIBLE_SIM_AXE)
   end
 end)
@@ -3785,6 +3787,9 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.ChallengeMarblesInit)
 ----------------------------------------------------------
 function mod:onSatanFrostyKill()
     local isFrosty = false
+    if game:GetLevel():GetStage() ~= 10 or game:GetLevel():GetStageType() ~= StageType.STAGETYPE_ORIGINAL or game:IsGreedMode() or game:GetRoom():GetType() ~= RoomType.ROOM_BOSS or game:GetRoom():GetBossID() ~= 24 then
+        return
+    end
     mod:AnyPlayerDo(function(player)
         if player:GetPlayerType() == frostType then
             isFrosty = true
@@ -3794,25 +3799,33 @@ function mod:onSatanFrostyKill()
         Isaac.GetPersistentGameData():TryUnlock(DeathCardAchId)
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onSatanFrostyKill, EntityType.ENTITY_SATAN)
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.onSatanFrostyKill)
 
 function mod:onBlueBabyFrostyKill(entity)
     local isFrosty = false
+    print(game:GetRoom():GetBossID())
+    if game:GetLevel():GetStage() ~= 11 or game:GetLevel():GetStageType() ~= StageType.STAGETYPE_WOTL or game:IsGreedMode() or game:GetRoom():GetType() ~= RoomType.ROOM_BOSS or game:GetRoom():GetBossID() ~= 40 then
+        return
+    end
     mod:AnyPlayerDo(function(player)
         if player:GetPlayerType() == frostType then
             isFrosty = true
         end
     end)
-    if isFrosty and entity.Variant == 1 then 
+    if isFrosty then 
         Isaac.GetPersistentGameData():TryUnlock(NumbHeartAchId)
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onBlueBabyFrostyKill, EntityType.ENTITY_ISAAC)
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.onBlueBabyFrostyKill)
 
 function mod:onMomHeartKill(entity)
     local FrostyDone = false
     local SimDone = false
     --local MinusIsaacDone = false
+    
+    if game:GetLevel():GetStage() ~= 8 or game:IsGreedMode() or game:GetRoom():GetType() ~= RoomType.ROOM_BOSS or (game:GetRoom():GetBossID() ~= 8 and game:GetRoom():GetBossID() ~= 25) then
+        return
+    end
 
     mod:AnyPlayerDo(function(player)
         if player:GetPlayerType() == frostType or Isaac.GetCompletionMark(frostType, 0) then
@@ -3829,7 +3842,8 @@ function mod:onMomHeartKill(entity)
         Isaac.GetPersistentGameData():TryUnlock(ImprovedCardsAchId)
     end
 end
-mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onMomHeartKill, EntityType.ENTITY_MOMS_HEART)
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.onMomHeartKill)
+--mod:AddCallback(ModCallbacks.MC_POST_ENTITY_KILL, mod.onMomHeartKill, EntityType.ENTITY_MOMS_HEART)
 
 ----------------------------------------------------------
 --ENHANCED CARDS
