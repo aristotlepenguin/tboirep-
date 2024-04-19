@@ -19,31 +19,7 @@ local HeartNumFlies = {
 
 local iceHeartEntity = 1022
 
-local function keeperFlyCheck(pickup, numFlies)
-    numFlies = numFlies or 2
 
-    local numKeepers = 0
-    local numNonKeepers = 0
-    for i = 0, game:GetNumPlayers() - 1 do
-        local ptype = Isaac.GetPlayer(i):GetPlayerType()
-        if ptype == PlayerType.PLAYER_KEEPER or ptype == PlayerType.PLAYER_KEEPER_B then
-            numKeepers = numKeepers + 1
-        else
-            numNonKeepers = numNonKeepers + 1
-        end
-    end
-
-    if numKeepers == 0 or numNonKeepers > 0 then
-        return
-    end
-
-    for i = 1, numFlies do
-        local afly = Isaac.Spawn(3, 43, 0, pickup.Position, Vector.Zero, pickup)
-        afly:ClearEntityFlags(EntityFlag.FLAG_APPEAR)
-        afly:Update()
-    end
-    pickup:Remove()
-end
 
 --------------------
 -- HEART REPLACEMENT
@@ -95,21 +71,7 @@ mod:AddCallback(ModCallbacks.MC_USE_PILL, function(_, _)
     cancelTaintedMorph()
 end, PillEffect.PILLEFFECT_HEMATEMESIS)
 
-mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, function(_, pickup)
-	if pickup.SubType < 84 or pickup.SubType > 100 then return end
 
-	if not mod.isPickupUnlocked(10, pickup.SubType) or mod.FLAG_NO_TAINTED_HEARTS then
-        local subtype = pickup.SubType
-
-		if subtype == mod.HEART_ICE then
-			pickup:Morph(5, 10, HeartSubType.HEART_FULL, true, true, false)
-		end
-
-        pickup:GetData().noTaintedMorph = true
-	end
-
-	keeperFlyCheck(pickup, HeartNumFlies[pickup.SubType])
-end, PickupVariant.PICKUP_HEART)
 
 ------------------------------------------------
 -- HANDLE DUPLICATING HEARTS WITH JERA, DIPLOPIA
@@ -153,22 +115,7 @@ local function taintedMorph(heartPickup, taintedSubtype)
 	heartPickup:Morph(5, 10, taintedSubtype, true, true, true)
 end
 
-local function getTrueTaintedMorphChance(kind)
-    if kind == "soul" then
-        for i = 0, game:GetNumPlayers() - 1 do
-            local player = Isaac.GetPlayer(i)
 
-            if player:HasCollectible(CollectibleType.COLLECTIBLE_SHARD_OF_GLASS)
-            or player:HasCollectible(CollectibleType.COLLECTIBLE_OLD_BANDAGE) then
-                return 4
-            end
-
-            return 8
-        end
-    else
-        return 0
-    end
-end
 
 local FrozenHeartsAchId = Isaac.GetAchievementIdByName("FrozenHearts")
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, function(_, pickup)
@@ -183,10 +130,10 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, function(_, pickup)
         local roll = rng:RandomFloat() * 1000
         local subtype = pickup.SubType
         local baseChance
-
         if subtype == HeartSubType.HEART_SOUL and Isaac.GetPersistentGameData():Unlocked(FrozenHeartsAchId) then
-            baseChance = getTrueTaintedMorphChance("soul")
-            if roll < baseChance then taintedMorph(pickup, mod.HEART_ICE) end
+            baseChance = 200
+            if roll < baseChance then 
+                taintedMorph(pickup, mod.HEART_ICE) end
         end
     end
 end, PickupVariant.PICKUP_HEART)

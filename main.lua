@@ -72,6 +72,8 @@ mod.RepmTypes.TRINKET_HAMMER = Isaac.GetTrinketIdByName("Hammer")
 
 mod.RepmTypes.CHALLENGE_LOCUST_KING = Isaac.GetChallengeIdByName("Locust King")
 
+mod.RepmTypes.EFFECT_FROSTY_RIFT = Isaac.GetEntityVariantByName("Frosty Rift")
+
 
 function mod.GetMenuSaveData()
     if not mod.MenuData then
@@ -1601,7 +1603,7 @@ function mod:updateCache_Cig(_player, cacheFlag)
 	end	
 end
 
-mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Cig)
+--mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_Cig)
 
 
 local spawnPos = Vector(500,140)
@@ -3058,6 +3060,37 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
         end
     end
 end)
+
+
+--function mod:
+
+function mod:FrostyRiftEffectRender(effect, renderoffset)
+    local sprite = effect:GetSprite()
+    if sprite:IsFinished("Appear") then
+        sprite:Play("Idle")
+    elseif sprite:IsFinished("Disappear") then
+        effect:Remove()
+    else
+        if game:GetFrameCount() % 5 == 0 then
+            effect:Update()
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, mod.FrostyRiftEffectRender, mod.RepmTypes.EFFECT_FROSTY_RIFT)
+
+function mod:OnRiftCollide(effect)
+    local entities = Isaac.FindInRadius(effect.Position, effect.Size/2)
+    for i, collider in ipairs(entities) do
+        if collider.Type == EntityType.ENTITY_PLAYER and collider:ToPlayer() 
+        and collider:ToPlayer():GetPlayerType() == frostType
+        and not effect:GetData().Repm_Rift_Delete then
+            effect:GetSprite():Play("Disappear")
+            effect:GetData().Repm_Rift_Delete = true
+            break
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.OnRiftCollide, mod.RepmTypes.EFFECT_FROSTY_RIFT)
 
 
 local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")

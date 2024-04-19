@@ -51,4 +51,8 @@
     <entity anm2path="items/pick ups/sim_axe.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="3" collisionRadius="12" friction="1" id="5" name="Sim Axe Pickup" numGridCollisionPoints="24" shadowSize="17" stageHP="0" variant="1352" subtype = "1">
         <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0" />
     </entity>
+
+    <entity anm2path="frosty_alt_rift.anm2" baseHP="0" boss="0" champion="0" collisionDamage="0" collisionMass="0" collisionRadius="40" friction="1" id="1000" name="Frosty Rift" numGridCollisionPoints="0" shadowSize="0" stageHP="0" variant="15352" subtype = "1">
+        <gibs amount="0" blood="0" bone="0" eye="0" gut="0" large="0"/>
+    </entity>
 </entities>
