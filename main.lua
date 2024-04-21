@@ -62,6 +62,7 @@ mod.RepmTypes.COLLECTIBLE_VHS =  Isaac.GetItemIdByName("VHS cassette")
 mod.RepmTypes.COLLECTIBLE_EXECUTIONER_HELMET = Isaac.GetItemIdByName("Executioner helmet")
 mod.RepmTypes.COLLECTIBLE_ROT = Isaac.GetItemIdByName("Rot")
 mod.RepmTypes.Collectible_BLOODY_NEGATIVE = Isaac.GetItemIdByName("Bloddy negative")
+mod.RepmTypes.Collectible_SIREN_HORNS = Isaac.GetItemIdByName("Siren Horns")
 
 mod.RepmTypes.TRINKET_POCKET_TECHNOLOGY = Isaac.GetTrinketIdByName("Pocket Techology")
 mod.RepmTypes.TRINKET_MICRO_AMPLIFIER = Isaac.GetTrinketIdByName("micro amplifier")
@@ -4043,8 +4044,64 @@ function mod:OnEnhancedStrengthB(card, player, useflags)
 end
 mod:AddCallback(ModCallbacks.MC_PRE_USE_CARD, mod.OnEnhancedStrengthB, Card.CARD_REVERSE_STRENGTH)
 
+----------------------------------------------------------
+--SIREN HORNS
+----------------------------------------------------------
 
+local chargebarFramesSiren = 235
+local SirenHud = Sprite()
+SirenHud:Load("gfx/chargebar_siren.anm2", true)
+local sirenframesToCharge = 141
+--local framesToCharge = 235
+--local framesToCharge = 20
+local sirenRenderedPosition = Vector(21, -12)
 
+function mod:renderSirenCharge(player)
+    if player:HasCollectible(mod.RepmTypes.Collectible_SIREN_HORNS) then
+        local data = player:GetData()
+        data.RepM_SirenChargeFrames = data.RepM_SirenChargeFrames or 0
+        local maxThreshold = data.RepM_SirenChargeFrames
+        local aim = player:GetAimDirection()
+        local isAim = aim:Length() > 0.01 
+        
+        if isAim then
+            data.RepM_SirenChargeFrames = (data.RepM_SirenChargeFrames or 0) + 1
+        elseif not game:IsPaused() then
+            data.RepM_SirenChargeFrames = 0
+        end
+        
+        if maxThreshold > sirenframesToCharge and data.RepM_SirenChargeFrames == 0 then
+            data.repM_fireSiren = -1
+        end
+
+        if data.RepM_SirenChargeFrames > 0 and data.RepM_SirenChargeFrames <= sirenframesToCharge then
+            local frameToSet = math.floor(math.min(data.RepM_SirenChargeFrames * (100/sirenframesToCharge), 100))
+            SirenHud:SetFrame("Charging", frameToSet)
+            SirenHud:Render(Isaac.WorldToScreen(player.Position) + sirenRenderedPosition)
+        elseif data.RepM_SirenChargeFrames > sirenframesToCharge then
+            local frameToSet = math.floor(((data.RepM_SirenChargeFrames-sirenframesToCharge))/2) % 6
+            SirenHud:SetFrame("Charged", frameToSet)
+            SirenHud:Render(Isaac.WorldToScreen(player.Position) + sirenRenderedPosition)
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.renderSirenCharge)
+
+local lastFiredFrame = 0
+function mod:waitFireSiren(player)
+    if player:GetData().repM_fireSiren == -1 then
+        player:GetData().repM_fireSiren = game:GetFrameCount() + 150
+        sfx:Play(SoundEffect.SOUND_SIREN_SCREAM)
+    elseif player:GetData().repM_fireSiren and player:GetData().repM_fireSiren > 0 and game:GetFrameCount() > player:GetData().repM_fireSiren then
+        player:GetData().repM_fireSiren = nil
+    elseif player:GetData().repM_fireSiren and player:GetData().repM_fireSiren > 0 then
+        if game:GetFrameCount() % 5 == 0 and game:GetFrameCount() ~= lastFiredFrame then
+            Isaac.Spawn(1000, 164, 0, player.Position, Vector.Zero, nil)
+            lastFiredFrame = game:GetFrameCount()
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.waitFireSiren)
 
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
