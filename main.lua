@@ -75,6 +75,10 @@ mod.RepmTypes.CHALLENGE_LOCUST_KING = Isaac.GetChallengeIdByName("Locust King")
 
 mod.RepmTypes.EFFECT_FROSTY_RIFT = Isaac.GetEntityVariantByName("Frosty Rift")
 
+mod.RepmTypes.SIREN_COSTUME = Isaac.GetCostumeIdByPath("gfx/characters/tantrum_face.anm2")
+
+mod.RepmTypes.SFX_WIND = Isaac.GetSoundIdByName("blizz_sound")
+mod.RepmTypes.SFX_LIGHTNING = Isaac.GetSoundIdByName("Thunder")
 
 function mod.GetMenuSaveData()
     if not mod.MenuData then
@@ -160,8 +164,6 @@ mod.LIGHTNING_EFFECT = Isaac.GetEntityTypeByName("Lightning")
 mod.LIGHTNING_VARIANT = Isaac.GetEntityVariantByName("2643")
 
 
-mod.SFX_LIGHTNING = Isaac.GetSoundIdByName("Thunder")
-
 
 
 
@@ -208,7 +210,7 @@ function mod:entityTakeDMG(tookDamage, damageAmount, damageFlag, damageSource, d
 						Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.CROSS_POOF, 0,
 						entity.Position, Vector(0,0), player) --Blue circle effect
 						
-						sound:Play(mod.SFX_LIGHTNING, 1, 0, false, 0.6) --Lightning Sound
+						sound:Play(mod.RepmTypes.SFX_LIGHTNING, 1, 0, false, 0.6) --Lightning Sound
 						--Reset Hits counter
 						data.TechLHits = 0
 			
@@ -2937,8 +2939,15 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
             pdata.FrostDamageDebuff = 0
             player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
             player:EvaluateItems()
+            if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and not game:GetRoom():IsClear() then
+                local position = game:GetRoom():FindFreePickupSpawnPosition(game:GetRoom():GetRandomPosition(3))
+                local rift = Isaac.Spawn(1000, mod.RepmTypes.EFFECT_FROSTY_RIFT, 1, position, Vector.Zero, nil)
+                rift.SortingLayer = SortingLayer.SORTING_BACKGROUND
+                rift:GetSprite():Play("Appear")
+            end
         end
     end)
+    saveTable.BlizzFade = nil
 end)
 
 local percentFreezePerSecond = 42 --chance to freeze every second
@@ -3079,6 +3088,21 @@ function mod:FrostyRiftEffectRender(effect, renderoffset)
 end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_RENDER, mod.FrostyRiftEffectRender, mod.RepmTypes.EFFECT_FROSTY_RIFT)
 
+function mod:FreezyShader(name)
+    if name == "BlueFade" then
+        local blueQty = 1
+        if saveTable.BlizzFade and saveTable.BlizzFade > game:GetFrameCount() then
+            blueQty = math.sin(0.05 * ((saveTable.BlizzFade - game:GetFrameCount())-31.4159) ) + 2
+        end
+        local params = {
+            BlueScale = blueQty
+        }
+        return params
+    end
+end
+mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.FreezyShader) 
+
+
 function mod:OnRiftCollide(effect)
     local entities = Isaac.FindInRadius(effect.Position, effect.Size/2)
     for i, collider in ipairs(entities) do
@@ -3086,6 +3110,22 @@ function mod:OnRiftCollide(effect)
         and collider:ToPlayer():GetPlayerType() == frostType
         and not effect:GetData().Repm_Rift_Delete then
             effect:GetSprite():Play("Disappear")
+            local poof = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.POOF01, 0, effect.Position, Vector(0,0), nil)
+            poof.Color = blueColor
+            saveTable.BlizzFade = game:GetFrameCount() + 125
+            sfx:Play(mod.RepmTypes.SFX_WIND)
+            local entities = Isaac.GetRoomEntities()
+            for i, entity in ipairs(entities) do
+                if entity:IsVulnerableEnemy() and not entity:IsBoss() and (entity:GetEntityFlags() & EntityFlag.FLAG_CHARM ~= EntityFlag.FLAG_CHARM) and (entity:GetEntityFlags() & EntityFlag.FLAG_FRIENDLY ~= EntityFlag.FLAG_FRIENDLY) then
+                    local freezepoint = entity:GetData().RepM_Frosty_FreezePoint
+                    local startingFrame = entity:GetData().RepM_Frosty_StartPoint
+                    if freezepoint and game:GetFrameCount() + 60 >= freezepoint then
+                        entity:GetData().RepM_Frosty_FreezePoint = game:GetFrameCount() + 1
+                    elseif freezepoint and freezepoint > game:GetFrameCount() then
+                        entity:GetData().RepM_Frosty_FreezePoint = math.floor((entity:GetData().RepM_Frosty_FreezePoint + game:GetFrameCount())/2)
+                    end
+                end
+            end
             effect:GetData().Repm_Rift_Delete = true
             break
         end
@@ -4064,7 +4104,7 @@ function mod:renderSirenCharge(player)
         local aim = player:GetAimDirection()
         local isAim = aim:Length() > 0.01 
         
-        if isAim then
+        if isAim and not (player:GetData().repM_fireSiren and player:GetData().repM_fireSiren > 0) then
             data.RepM_SirenChargeFrames = (data.RepM_SirenChargeFrames or 0) + 1
         elseif not game:IsPaused() then
             data.RepM_SirenChargeFrames = 0
@@ -4092,16 +4132,32 @@ function mod:waitFireSiren(player)
     if player:GetData().repM_fireSiren == -1 then
         player:GetData().repM_fireSiren = game:GetFrameCount() + 150
         sfx:Play(SoundEffect.SOUND_SIREN_SCREAM)
+        local entities = Isaac.GetRoomEntities()
+        local sirenRNG = player:GetCollectibleRNG(mod.RepmTypes.Collectible_SIREN_HORNS)
+        player:AddNullCostume(mod.RepmTypes.SIREN_COSTUME)
+        for i, entity in ipairs(entities) do
+            if entity:IsVulnerableEnemy() then
+                if sirenRNG:RandomInt(5) == 0 then
+                    entity:AddCharmed(EntityRef(player), 9999)
+                else
+                    entity:AddConfusion(EntityRef(player), 150, false)
+                end
+            end
+        end
     elseif player:GetData().repM_fireSiren and player:GetData().repM_fireSiren > 0 and game:GetFrameCount() > player:GetData().repM_fireSiren then
         player:GetData().repM_fireSiren = nil
+        player:TryRemoveNullCostume(mod.RepmTypes.SIREN_COSTUME)
     elseif player:GetData().repM_fireSiren and player:GetData().repM_fireSiren > 0 then
         if game:GetFrameCount() % 5 == 0 and game:GetFrameCount() ~= lastFiredFrame then
             Isaac.Spawn(1000, 164, 0, player.Position, Vector.Zero, nil)
             lastFiredFrame = game:GetFrameCount()
         end
+        player.FireDelay = 1
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.waitFireSiren)
+
+
 
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 

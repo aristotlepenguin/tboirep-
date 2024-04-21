@@ -9,6 +9,8 @@
 	<costume id="832" anm2path="baran.anm2" type="passive" isFlying="true" skinColor="0" />
 	<costume anm2path="sim_hair.anm2" type="none" priority="100" />
 	<costume id="234" anm2path="mimi.anm2" type="passive" />
+	<costume anm2path="tantrum_face.anm2" type="none" priority="100" />
+	<costume id = "425" anm2path="siren_horns.anm2" type="passive" />
 </costumes>
 
 

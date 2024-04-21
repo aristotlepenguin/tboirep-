@@ -21,6 +21,6 @@
           nameimage="minus.png" 
           portrait="playerportrait_frosty.png" 
           bigportrait="playerportrait_frosty.png" skinColor="-1"
-		  birthright="not done" 
+		  birthright="It's getting drafty!" 
 		  achievement="Frosty" />
 </players>

@@ -5,4 +5,7 @@
 	<sound name="fountain">
 		<sample weight="1" path="fountain_ambience.wav" />
 	</sound>
+	<sound name="blizz_sound">
+		<sample weight="1" path="wind_export.wav" />
+	</sound>
 </sounds>
