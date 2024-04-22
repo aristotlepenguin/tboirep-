@@ -2980,7 +2980,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
         end
     end
     if pdata.HoldingFrozenPolaroid ~= player:HasTrinket(mod.RepmTypes.TRINKET_FROZEN_POLAROID) then
-        
         if player:HasTrinket(mod.RepmTypes.TRINKET_FROZEN_POLAROID) then
             hiddenItemManager:Add(player, CollectibleType.COLLECTIBLE_MORE_OPTIONS)
             hiddenItemManager:Add(player, CollectibleType.COLLECTIBLE_STEAM_SALE)
@@ -4178,6 +4177,18 @@ if EID then
     iceHud:Load("gfx/cards_2_icicle.anm2", true)
     EID:addIcon("Card" .. tostring(iceCard), "HUDSmall", 0, 16, 16, 6, 6, iceHud)
 
+end
+
+
+local ItemTranslate = include("lua.lib.translation.ItemTranslation")
+ItemTranslate("RepMinus")
+
+local translations = {
+    "ru",
+}
+for i=1,#translations do
+    local module = include("lua.lib.translation." .. translations[i])
+    module(mod)
 end
 
 
