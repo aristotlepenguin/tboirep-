@@ -1,61 +1,52 @@
 <?xml version="1.0"?>
 <items version="1" gfxroot="gfx/items/">
 <!-- Items -->
-    <passive id="555" name="strawberry milk" description="confused enemies" gfx="strawberry milk.png" cache="tearcolor"/> 
-	<passive name="Salami" description="all stats up" gfx="salami.png" maxhearts="2" hearts="6" cache="all"/>
+    <passive id="555" name="Strawberry Milk" description="Confuse your enemies" gfx="strawberry milk.png" cache="tearcolor"/> 
+	<passive name="Salami" description="All stats up" gfx="salami.png" maxhearts="2" hearts="6" cache="all"/>
 	<!-- hearts="1" maxhearts="2" soulhearts="3" blackhearts="4" coins="5" keys="6" bombs="7" -->
-    <passive name="Lost shroom" description="taste like socks..." gfx="lost_shroom.png"/>
-	<passive id="777" name="PRObackstabber" description="pro spy!" gfx="PRObackstabber.png"/>
-	<active name="book of tails" description="Zzzz..." gfx="book of tails.png" maxcharges="6"/>
-	<active maxcharges="2" description="explosion did not go according to plan" gfx="prokamikadze.png" name="PROkamikadze" />
-	<active id="111" name="Holy shell" description="help from above" gfx="holyshell.png" maxcharges="0"/>
-	<passive name="Sim axe" description="Come at me!" gfx="sim axe 2.png" quality="3" tags="nolostbr summonable"/>
+    <passive name="Lost Shroom" description="Tastes like socks..." gfx="lost_shroom.png"/>
+	<passive id="777" name="Pro Backstabber" description="Gentlemen..." gfx="PRObackstabber.png"/>
+	<active name="Book of Tales" description="Zzzz..." gfx="book of tails.png" maxcharges="6"/>
+	<active maxcharges="2" description="Well that backfired..." gfx="prokamikadze.png" name="Pro Kamikaze" />
+	<active id="111" name="Holy shell" description="Help from above!" gfx="holyshell.png" maxcharges="0"/>
+	<passive name="Sim's Other Axe" description="Come at me!" gfx="sim axe 2.png" quality="3" tags="nolostbr summonable"/>
 	<active maxcharges="4" description="Gooey" gfx="Curious heart.png" name="Curious Heart" />
-	<familiar name="Big Brim"
-		description= "Big brother of the lil brim"
-		gfx="bigbrim.png"
-		devilprice="2"
-		quality="3"
-	/>
-	<active name="UnHoly shell" description="no one will help" gfx="unhollyshell.png" maxcharges="0"/>
-	<passive name="Cokacola" description="more sugar" gfx="coka.png"/>
-	<passive id="1234" cache="damage" name="Leaky Bucket" description="it oozes..." gfx="leaky bucket.png" />
-    <active name="Executioner helmet" description="bloom and DOOM!" gfx="doom.png" maxcharges="0"/>
-	<passive name="banana milk" description="PONG!!..." gfx="banamilk.png" cache="all" cache="tearcolor"/>
-	<passive name="Delirious tech" description="random lazer?" gfx="techdel.png" cache="tearcolor" id="478"/>
-	<passive name="I want to live" description="One more chance!" gfx="Brain Dead.png" />
-    <passive name="I am alive" description="Feeling alive" gfx="Brain Dead.png" cahce="damage firedelay" />
-	<passive name="pixel`s head" description="he is still make mod" gfx="pixhead.png" cache="all"/>
-	<passive name="glue stick" description="he is sticky..." gfx="pixhead.png" cache="all"/>
-	<passive id="999" name="vacuum" description="empty" gfx="Vacume.png" cache="all"/>
-	<passive name = "Minus" description = "Don't you dare take it" gfx="minus.png" quality="4" />
-    <active name = "Pink straw" description = "Again?" gfx="pink straw.png" maxcharges="420" chargetype="timed" quality="2" />
-    <active name = "Pixelated cube" description = "Mmmmm...    Kids"  gfx = "pixelated cube.png" maxcharges="6" quality="1" />
-    <passive name = "110V" description = "Fast charge, but high voltage" gfx = "110V.png" quality="2" />
-    <passive name = "Dilirium eye" description = "multiplying shot" gfx = "Dilirium eye.png" quality="2" />
-    <passive name = "The rock" description = "What did you say?" gfx = "The rock.png" id="738" quality="1" />
-	<passive name = "Flower tea" description = "tea for brains" gfx = "flower.png" quality="1" cache="all" hearts="24" />
-	<passive name="Holy master key" description="chance for eternity" gfx="otmich.png" />
-	<passive name="sandwich" description="fast and tasty" gfx="buter.png" maxhearts="2" cache="all" />
-	<passive id="832" name="Deal of the death" description="All stats up! But at what cost?" gfx="golovabarana.png" cache="all" />
-	<passive name="VHS cassette" description="Only in VHS" gfx="vhs.png" cache="all" />
-	<active name = "Bloddy negative" description = "minus? Stupid it`s a negative!"  gfx = "minmin.png" maxcharges="0" cache="all" />
-	<passive name="Lucky 7" description="fast and tasty" gfx="buter.png" />
-	<active name="Book of necromancer" description="the dead will serve!" gfx="NEGROMANTIA2.png" maxcharges="4" />
-	<passive name="Rot" description="it stinks" gfx="rot.png" />
+
+	<active name="Unholy Shell" description="No one is around to help..." gfx="unhollyshell.png" maxcharges="0"/>
+	<passive name="Coka Cola" description="Sugar rush" gfx="coka.png"/>
+	<passive id="1234" cache="damage" name="Leaky Bucket" description="It oozes..." gfx="leaky bucket.png" />
+    <active name="Executioner's Helmet" description="BLOOM AND DOOM!" gfx="doom.png" maxcharges="0"/>
+	<passive name="Banana Milk" description="PONG!!" gfx="banamilk.png" cache="all" cache="tearcolor"/>
+	<passive name="Delirious Tech" description="Mad science" gfx="techdel.png" cache="tearcolor" id="478"/>
+	<passive name="Pixel`s Head" description="He's still making the mod, guys!" gfx="pixhead.png" cache="all"/>
+	<passive name="Glue Stick" description="Sticky..." gfx="pixhead.png" cache="all"/>
+	<passive id="999" name="Vacuum" description="No one can hear you cry" gfx="Vacume.png" cache="all"/>
+	<passive name = "Minus" description = "Don't you dare take it!" gfx="minus.png" quality="4" />
+    <active name = "Pink Straw" description = "Again?" gfx="pink straw.png" maxcharges="420" chargetype="timed" quality="2" />
+    <active name = "Pixelated Cube" description = "Where babies come from"  gfx = "pixelated cube.png" maxcharges="6" quality="1" />
+    <passive name = "110V" description = "High voltage" gfx = "110V.png" quality="2" />
+    <passive name = "Delirium's Eye" description = "I'm seeing double..." gfx = "Dilirium eye.png" quality="2" />
+    <passive name = "The Rock" description = "What did you say?" gfx = "The rock.png" id="738" quality="1" />
+	<passive name = "Flower Tea" description = "Is this calming?" gfx = "flower.png" quality="1" cache="all" hearts="24" />
+	<passive name="Holy Master Key" description="Eternal roulette" gfx="otmich.png" />
+	<passive name="Sandwich" description="Tasty!" gfx="buter.png" maxhearts="2" cache="all" />
+	<passive id="832" name="Faustian Bargain" description="All stats up! But at what cost?" gfx="golovabarana.png" cache="all" />
+	<passive name="VHS Cassette" description="Fast forward" gfx="vhs.png" cache="all" />
+	<active name = "Bloody Negative" description = "Wrong negative, stupid!"  gfx = "minmin.png" maxcharges="0" cache="all" />
+	<active name="Necronomicon Vol. 3" description="Death serves you" gfx="NEGROMANTIA2.png" maxcharges="4" />
+	<passive name="Rot" description="Eww..." gfx="rot.png" />
 	<familiar name="Frozen Flies" description="They give you the cold shoulder" gfx="frozen_flys.png" />
 	<active name="Numb Heart" description="Reusable apathy" gfx="Numb Heart.png" maxcharges="6" achievement= "NumbHeart"/>
 	<passive name="Friendly Rocks" description="I loves my rocks!" gfx="Friendly Rocks.png" quality = "1"/>
 	<passive name="Like" description="Farm for them" gfx="Like.png"/>
-	<passive id="234" name="test" description="It oozes..." gfx="leaky bucket.png" />
 	<active name="Sim's Axe" description="Timber!" gfx="Sim Axe.png" maxcharges="3"/>
 	<active name="Frozen Food" description="HP up + brain freeze" gfx="frozen food.png" cache="damage"/>
 	<passive id = "425" name="Siren Horns" description="Come hither" gfx="Siren Horns.png"/>
 <!-- Trinkets -->
-	<trinket name="micro amplifier" description="STOP!" gfx="microamplifier.png" />
-	<trinket name="burned clover" description="luck lasts" gfx="Clover.png" />
-	<trinket name="Pocket Techology" description="like tech... but dont tech..." gfx="PocketTechology.png" />
-	<trinket name="MORE OPTIONS" description="why isn't this in the game :(" gfx="MORE OPTIONS.png" />
-	<trinket name="Hammer" description="boink" cache="tearflag" gfx="hammer.png" />
+	<trinket name="Micro Amplifier" description="STOP!" gfx="microamplifier.png" />
+	<trinket name="Burnt Clover" description="Don't let it ride" gfx="Clover.png" />
+	<trinket name="Pocket Technology" description="Like tech...but...not?" gfx="PocketTechology.png" />
+	<trinket name="MORE OPTIONS" description="Why isn't this in the game? :(" gfx="MORE OPTIONS.png" />
+	<trinket name="Hammer" description="Boink!" cache="tearflag" gfx="hammer.png" />
 	<trinket name="Frozen Polaroid" description="They preserved you in ice" gfx="frozen_polaroid.png" />
 </items>
