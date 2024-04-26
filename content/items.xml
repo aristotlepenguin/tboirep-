@@ -44,7 +44,7 @@
 	<passive id = "425" name="Siren Horns" description="Come hither" gfx="Siren Horns.png"/>
 <!-- Trinkets -->
 	<trinket name="Micro Amplifier" description="STOP!" gfx="microamplifier.png" />
-	<trinket name="Burnt Clover" description="Don't let it ride" gfx="Clover.png" />
+	<trinket name="Burnt Clover" description="The treasury is surprising" gfx="Clover.png" />
 	<trinket name="Pocket Technology" description="Like tech...but...not?" gfx="PocketTechology.png" />
 	<trinket name="MORE OPTIONS" description="Why isn't this in the game? :(" gfx="MORE OPTIONS.png" />
 	<trinket name="Hammer" description="Boink!" cache="tearflag" gfx="hammer.png" />
