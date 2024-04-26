@@ -10,7 +10,7 @@
 	<active maxcharges="2" description="Well that backfired..." gfx="prokamikadze.png" name="Pro Kamikaze" />
 	<active id="111" name="Holy shell" description="Help from above!" gfx="holyshell.png" maxcharges="0"/>
 	<passive name="Sim's Other Axe" description="Come at me!" gfx="sim axe 2.png" quality="3" tags="nolostbr summonable"/>
-	<active maxcharges="4" description="Gooey" gfx="Curious heart.png" name="Curious Heart" />
+	<active maxcharges="4" description="...with Lyte..." gfx="Curious heart.png" name="Curious Heart" />
 
 	<active name="Unholy Shell" description="No one is around to help..." gfx="unhollyshell.png" maxcharges="0"/>
 	<passive name="Coka Cola" description="Sugar rush" gfx="coka.png"/>
@@ -25,13 +25,13 @@
     <active name = "Pink Straw" description = "Again?" gfx="pink straw.png" maxcharges="420" chargetype="timed" quality="2" />
     <active name = "Pixelated Cube" description = "Where babies come from"  gfx = "pixelated cube.png" maxcharges="6" quality="1" />
     <passive name = "110V" description = "High voltage" gfx = "110V.png" quality="2" />
-    <passive name = "Delirium's Eye" description = "I'm seeing double..." gfx = "Dilirium eye.png" quality="2" />
+    <passive name = "Deliriums Eye" description = "I'm seeing double" gfx = "Dilirium eye.png" quality="2" />
     <passive name = "The Rock" description = "What did you say?" gfx = "The rock.png" id="738" quality="1" />
 	<passive name = "Flower Tea" description = "Is this calming?" gfx = "flower.png" quality="1" cache="all" hearts="24" />
 	<passive name="Holy Master Key" description="Eternal roulette" gfx="otmich.png" />
 	<passive name="Sandwich" description="Tasty!" gfx="buter.png" maxhearts="2" cache="all" />
 	<passive id="832" name="Faustian Bargain" description="All stats up! But at what cost?" gfx="golovabarana.png" cache="all" />
-	<passive name="VHS Cassette" description="Fast forward" gfx="vhs.png" cache="all" />
+	<passive name="VHS Cassette" description="Old filter" gfx="vhs.png" cache="all" />
 	<active name = "Bloody Negative" description = "Wrong negative, stupid!"  gfx = "minmin.png" maxcharges="0" cache="all" />
 	<active name="Necronomicon Vol. 3" description="Death serves you" gfx="NEGROMANTIA2.png" maxcharges="4" />
 	<passive name="Rot" description="Eww..." gfx="rot.png" />
