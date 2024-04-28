@@ -9,7 +9,6 @@
 	<active name="Book of Tales" description="Zzzz..." gfx="book of tails.png" maxcharges="6"/>
 	<active maxcharges="2" description="Well that backfired..." gfx="prokamikadze.png" name="Pro Kamikaze" />
 	<active id="111" name="Holy shell" description="Help from above!" gfx="holyshell.png" maxcharges="0"/>
-	<passive name="Sim's Other Axe" description="Come at me!" gfx="sim axe 2.png" quality="3" tags="nolostbr summonable"/>
 	<active maxcharges="4" description="...with Lyte..." gfx="Curious heart.png" name="Curious Heart" />
 
 	<active name="Unholy Shell" description="No one is around to help..." gfx="unhollyshell.png" maxcharges="0"/>
@@ -34,12 +33,12 @@
 	<passive name="VHS Cassette" description="Old filter" gfx="vhs.png" cache="all" />
 	<active name = "Bloody Negative" description = "Wrong negative, stupid!"  gfx = "minmin.png" maxcharges="0" cache="all" />
 	<active name="Necronomicon Vol. 3" description="Death serves you" gfx="NEGROMANTIA2.png" maxcharges="4" />
-	<passive name="Rot" description="Eww..." gfx="rot.png" />
+	<passive name="Rot" description="Eww..." gfx="rot.png" achievement= "RotAch"/>
 	<familiar name="Frozen Flies" description="They give you the cold shoulder" gfx="frozen_flys.png" />
 	<active name="Numb Heart" description="Reusable apathy" gfx="Numb Heart.png" maxcharges="6" achievement= "NumbHeart"/>
 	<passive name="Friendly Rocks" description="I loves my rocks!" gfx="Friendly Rocks.png" quality = "1"/>
 	<passive name="Like" description="Farm for them" gfx="Like.png"/>
-	<active name="Sim's Axe" description="Timber!" gfx="Sim Axe.png" maxcharges="3"/>
+	<active name="Sim's Axe" description="Timber!" gfx="Sim Axe.png" maxcharges="3" achievement= "SimDelirium"/>
 	<active name="Frozen Food" description="HP up + brain freeze" gfx="frozen food.png" cache="damage"/>
 	<passive id = "425" name="Siren Horns" description="Come hither" gfx="Siren Horns.png"/>
 <!-- Trinkets -->

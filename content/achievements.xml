@@ -6,4 +6,6 @@
 	<achievement name="FrozenHearts" text='' gfx="achievementfrozenhearts.png" />
 	<achievement name="improved_cards" text='' gfx="achievementimproved_cards.png" />
 	<achievement name="NumbHeart" text='' gfx="numb_heart_ach.png" />
+	<achievement name="RotAch" text='' gfx="rot_ach.png" />
+	<achievement name="SimDelirium" text='' gfx="sim_delirium.png" />
 </achievements>

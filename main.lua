@@ -23,7 +23,6 @@ local sfx = SFXManager()
 
 mod.RepmTypes = {}
 
-mod.RepmTypes.COLLECTIBLE_SIM_AXE = Isaac.GetItemIdByName("Sim's Other Axe")
 mod.RepmTypes.COLLECTIBLE_TSUNDERE_FLY = Isaac.GetItemIdByName("Frozen Flies")
 mod.RepmTypes.COLLECTIBLE_FRIENDLY_ROCKS = Isaac.GetItemIdByName("Friendly Rocks")
 mod.RepmTypes.COLLECTIBLE_LIKE = Isaac.GetItemIdByName("Like")
@@ -77,6 +76,14 @@ mod.RepmTypes.SIREN_COSTUME = Isaac.GetCostumeIdByPath("gfx/characters/tantrum_f
 
 mod.RepmTypes.SFX_WIND = Isaac.GetSoundIdByName("blizz_sound")
 mod.RepmTypes.SFX_LIGHTNING = Isaac.GetSoundIdByName("Thunder")
+
+local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
+local DeathCardAchId = Isaac.GetAchievementIdByName("FrostySatan")
+local FrozenHeartsAchId = Isaac.GetAchievementIdByName("FrozenHearts")
+local ImprovedCardsAchId = Isaac.GetAchievementIdByName("improved_cards")
+local NumbHeartAchId = Isaac.GetAchievementIdByName("NumbHeart")
+local RotAchId = Isaac.GetAchievementIdByName("RotAch")
+local SimDeliriumId = Isaac.GetAchievementIdByName("SimDelirium")
 
 function mod.GetMenuSaveData()
     if not mod.MenuData then
@@ -355,46 +362,10 @@ function mod:updateCache_AllStats(_player, cacheFlag)
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.updateCache_AllStats)
 
-
-
-
-local DJdesc = "Upon taking damage, this item causes you do a spin attack, dealing damage to nearby enemies and blocking projectiles for a short while"
-local Wiki = {
-  SimAxe = {
-    { -- Effect
-      {str = "Effect", fsize = 2, clr = 3, halign = 0},
-      {str = "On activation, a spin attack will damage enemies around him, doing his current damage with a multiplier."},
-      {str = " - The spin attack blocks projectiles."},
-      {str = " - When an enemy is killed with the spin attack, it has a chance to drop a red heart on the floor."},
-    },
-	{ -- Notes
-      {str = "Interactions", fsize = 2, clr = 3, halign = 0},
-      {str = "20/20: Grants 1 additional spin."},
-	  {str = "Ipecac: Spin attack poisons enemies."},
-	  {str = "Mutant Spider: Grants 3 additional spins."},
-	  {str = "The Inner Eye: Grants 2 additional spins."},
-	  {str = "Head of the Keeper: Enemies killed by the spin attack drop coins"},
-	  {str = "Holy Light: Spin attack summons holy light upon enemies hit"},
-	  {str = "Uranus: Enemies killed by the spin attack are frozen."},
-    },
-  }
-}
-
-
 ----------------------------------------------------------
 --Sim's Axe
 ----------------------------------------------------------
 
-if Encyclopedia then
-	Encyclopedia.AddItem({
-	  ID = mod.RepmTypes.COLLECTIBLE_SIM_AXE,
-	  WikiDesc = Wiki.SimAxe,
-	  Pools = {
-		Encyclopedia.ItemPools.POOL_TREASURE,
-		Encyclopedia.ItemPools.POOL_GREED_TREASURE,
-	  },
-	})
-end
 
 local function TEARFLAG(x)
 	return x >= 64 and BitSet128(0,1<<(x - 64)) or BitSet128(1<<x,0)
@@ -783,7 +754,9 @@ function mod:GiveCostumesOnInit(player)
     if player:GetPlayerType() ~= SimType then
         return -- End the function early. The below code doesn't run, as long as the player isn't Gabriel.
     end
-    player:AddCollectible(mod.RepmTypes.COLLECTIBLE_AXE_ACTIVE, 3)
+    if Isaac.GetPersistentGameData():Unlocked(SimDeliriumId) then
+        player:AddCollectible(mod.RepmTypes.COLLECTIBLE_AXE_ACTIVE, 3)
+    end
     player:AddNullCostume(hairCostume)
 end
 
@@ -829,12 +802,6 @@ function Sim:onCache(player, cacheFlag) -- I do mean everywhere!
 end
  
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, Sim.onCache)
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function(_, player)
-  if player:GetPlayerType() == SimType then 
-    --player:SetPocketActiveItem(32, 2, true)
-    player:AddCollectible(mod.RepmTypes.COLLECTIBLE_SIM_AXE)
-  end
-end)
 
 
 
@@ -2824,11 +2791,7 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_UPDATE, mod.OnRiftCollide, mod.RepmTypes.EFFECT_FROSTY_RIFT)
 
 
-local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
-local DeathCardAchId = Isaac.GetAchievementIdByName("FrostySatan")
-local FrozenHeartsAchId = Isaac.GetAchievementIdByName("FrozenHearts")
-local ImprovedCardsAchId = Isaac.GetAchievementIdByName("improved_cards")
-local NumbHeartAchId = Isaac.GetAchievementIdByName("NumbHeart")
+
     --Isaac.GetPersistentGameData():TryUnlock(FrostyAchId)
 
 function mod:Anm()
@@ -3566,7 +3529,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.onSatanFrostyKill)
 
 function mod:onBlueBabyFrostyKill(entity)
     local isFrosty = false
-    print(game:GetRoom():GetBossID())
     if game:GetLevel():GetStage() ~= 11 or game:GetLevel():GetStageType() ~= StageType.STAGETYPE_WOTL or game:IsGreedMode() or game:GetRoom():GetType() ~= RoomType.ROOM_BOSS or game:GetRoom():GetBossID() ~= 40 then
         return
     end
@@ -3580,6 +3542,38 @@ function mod:onBlueBabyFrostyKill(entity)
     end
 end
 mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.onBlueBabyFrostyKill)
+
+function mod:onSimDeliriumKill(entity)
+    local isSim = false
+    if game:GetLevel():GetStage() ~= 12 or game:GetRoom():GetBossID() ~= 70 then
+        return
+    end
+    mod:AnyPlayerDo(function(player)
+        if player:GetPlayerType() == SimType then
+            isSim = true
+        end
+    end)
+    if isSim then 
+        Isaac.GetPersistentGameData():TryUnlock(SimDeliriumId)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.onSimDeliriumKill)
+
+function mod:onSimMotherKill(entity)
+    local isSim = false
+    if game:GetLevel():GetStage() ~= 8 or game:GetRoom():GetBossID() ~= 72 then
+        return
+    end
+    mod:AnyPlayerDo(function(player)
+        if player:GetPlayerType() == SimType then
+            isSim = true
+        end
+    end)
+    if isSim then 
+        Isaac.GetPersistentGameData():TryUnlock(RotAchId)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.onSimMotherKill)
 
 function mod:onMomHeartKill(entity)
     local FrostyDone = false
@@ -3856,11 +3850,10 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.waitFireSiren)
 ----------------------------------------------------------
 
 if EID then
-    EID:addCollectible(mod.RepmTypes.COLLECTIBLE_SIM_AXE, DJdesc, "Sim Axe", "en_us")
     EID:addCollectible(mod.RepmTypes.COLLECTIBLE_TSUNDERE_FLY, "Spawns two fly orbitals that deflect projectiles#Deflected shots become homing, and freeze any non-boss enemy they touch.", "Frozen Flies", "en_us")
     EID:addCollectible(mod.RepmTypes.COLLECTIBLE_FRIENDLY_ROCKS, "Friendly Stone Dips will have a 20% chance to spawn out of rocks when they are broken.", "Friendly Rocks", "en_us")
     EID:addCollectible(mod.RepmTypes.COLLECTIBLE_NUMB_HEART, "On use, adds 1 frozen heart.", "Numb Heart", "en_us")
-
+    
     EID:addTrinket(mod.RepmTypes.TRINKET_POCKET_TECHNOLOGY, "Deal 1.5x more damage to champion enemies and champion bosses", "Pocket Techology", "en_us");
     
     EID:addCard(iceCard, "Using it in most rooms slowly begins to freeze all enemies. #Non-boss enemies in the room gradually turn blue before freezing completely#Use this item in the Mom fight for a different effect...", "Icicle", "en_us")
