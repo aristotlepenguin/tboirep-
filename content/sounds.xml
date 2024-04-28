@@ -8,4 +8,7 @@
 	<sound name="blizz_sound">
 		<sample weight="1" path="wind_export.wav" />
 	</sound>
+	<sound name="siren_sound">
+		<sample weight="1" path="sirenhorns.wav" />
+	</sound>
 </sounds>

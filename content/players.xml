@@ -7,7 +7,9 @@
           portrait="BigTemplatePortrait.png" 
           bigportrait="BigTemplatePortrait.png" skinColor="-1"
 		  birthright="More axes" />
-	
+	<player hp="6" bombs="1" name="Tainted Sim"
+	nameimage="sim_b.png" bigportrait="sim_b_big.png" portrait="sim_b_big.png" skin="character_sim_b.png" skinColor="1" birthright="Crack their bones" 
+	bSkinParent="Sim"/>
 	<player name="Frosty" skin="character_frosty.png" hp="0" armor = "1" bombs="2" 
           nameimage="minus.png" 
           portrait="playerportrait_frosty.png" 

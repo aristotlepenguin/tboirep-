@@ -76,6 +76,7 @@ mod.RepmTypes.SIREN_COSTUME = Isaac.GetCostumeIdByPath("gfx/characters/tantrum_f
 
 mod.RepmTypes.SFX_WIND = Isaac.GetSoundIdByName("blizz_sound")
 mod.RepmTypes.SFX_LIGHTNING = Isaac.GetSoundIdByName("Thunder")
+mod.RepmTypes.SFX_SIREN = Isaac.GetSoundIdByName("siren_sound")
 
 local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
 local DeathCardAchId = Isaac.GetAchievementIdByName("FrostySatan")
@@ -603,12 +604,37 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.onFireAxe)
 local PriceTextFontTempesta = Font()
 PriceTextFontTempesta:Load("font/pftempestasevencondensed.fnt")
 
+local LastTimeArrowPress = -30
+local ArrowLastUsed = -1
+
+function mod:IsDoubleTapTriggered(player)
+    if game:GetFrameCount() - LastTimeArrowPress < 6 and ((Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, player.ControllerIndex) and ArrowLastUsed == ButtonAction.ACTION_SHOOTLEFT) or
+    (Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, player.ControllerIndex) and ArrowLastUsed == ButtonAction.ACTION_SHOOTRIGHT) or
+    (Input.IsActionTriggered(ButtonAction.ACTION_SHOOTUP, player.ControllerIndex) and ArrowLastUsed == ButtonAction.ACTION_SHOOTUP) or
+    (Input.IsActionTriggered(ButtonAction.ACTION_SHOOTDOWN, player.ControllerIndex) and ArrowLastUsed == ButtonAction.ACTION_SHOOTDOWN)) then
+        return true
+    elseif Input.IsActionTriggered(ButtonAction.ACTION_SHOOTRIGHT, player.ControllerIndex) then
+        ArrowLastUsed = ButtonAction.ACTION_SHOOTRIGHT
+        LastTimeArrowPress = game:GetFrameCount()
+    elseif Input.IsActionTriggered(ButtonAction.ACTION_SHOOTUP, player.ControllerIndex) then
+        ArrowLastUsed = ButtonAction.ACTION_SHOOTUP
+        LastTimeArrowPress = game:GetFrameCount()
+    elseif Input.IsActionTriggered(ButtonAction.ACTION_SHOOTDOWN, player.ControllerIndex) then
+        ArrowLastUsed = ButtonAction.ACTION_SHOOTDOWN
+        LastTimeArrowPress = game:GetFrameCount()
+    elseif Input.IsActionTriggered(ButtonAction.ACTION_SHOOTLEFT, player.ControllerIndex) then
+        ArrowLastUsed = ButtonAction.ACTION_SHOOTLEFT
+        LastTimeArrowPress = game:GetFrameCount()
+    end
+    return false
+end
+
 function mod:simUIAxeRender(player)
     local isSim = false
     mod:AnyPlayerDo(function(player)
         if player:GetPlayerType() == SimType then
             isSim = true
-            if Input.IsButtonTriggered(Keyboard.KEY_X, player.ControllerIndex) and saveTable.SimAxesCollected > 0  then --
+            if mod:IsDoubleTapTriggered(player) and saveTable.SimAxesCollected > 0  then --
                 player:GetData().repM_fireAxe = true
                 saveTable.SimAxesCollected = saveTable.SimAxesCollected -1
             end
@@ -3814,8 +3840,8 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.renderSirenCharge)
 local lastFiredFrame = 0
 function mod:waitFireSiren(player)
     if player:GetData().repM_fireSiren == -1 then
-        player:GetData().repM_fireSiren = game:GetFrameCount() + 150
-        sfx:Play(SoundEffect.SOUND_SIREN_SCREAM)
+        player:GetData().repM_fireSiren = game:GetFrameCount() + 90
+        sfx:Play(mod.RepmTypes.SFX_SIREN)
         local entities = Isaac.GetRoomEntities()
         local sirenRNG = player:GetCollectibleRNG(mod.RepmTypes.Collectible_SIREN_HORNS)
         player:AddNullCostume(mod.RepmTypes.SIREN_COSTUME)
