@@ -18,7 +18,7 @@
 	<track id="17" name="Scarred Womb" intro="Afterbirth/Cicatrix (Scarred Womb) Intro.ogg" path="Afterbirth/Cicatrix (Scarred Womb) Loop.ogg" layerintro="Afterbirth/Cicatrix (Scarred Womb) Intro silent.ogg" layer="Afterbirth/Cicatrix (Scarred Womb) Layer.ogg" loop="true" />
 	<track id="18" name="Blue Womb" intro="Afterbirth/Nativitate  (Dead Womb Floor) Intro.ogg" path="Afterbirth/Nativitate (Dead Womb Floor) Loop.ogg" layerintro="Afterbirth/Nativitate  (Dead Womb Floor) Intro silence.ogg" layer="Afterbirth/Nativitate (Dead Womb Floor) Layer.ogg" loop="true" />
 	<track id="19" name="Utero" path="Utero.ogg" layer="Utero Heavy.ogg" loop="true" layermode="2" layerfadespeed="0.005" />
-	<track id="20" name="Boss (Depths - Mom)" path="Fight Ogg/Mom Fight.ogg" loop="true" />
+	<track id="20" name="Boss (Depths - Mom)" path="Fight Ogg/mom fight.ogg" intro="fight ogg/mom fight intro.ogg"  loop="true" />
 	<track id="21" name="Boss (Womb - Mom's Heart)" path="Fight Ogg/Womb Fight.ogg" loop="true" />
 	<track id="22" name="Boss (Cathedral - Isaac)" path="Fight Ogg/Isaac Fight.ogg" loop="true" />
 	<track id="23" name="Boss (Sheol - Satan)" path="Fight Ogg/Satan Fight.ogg" loop="true" />
