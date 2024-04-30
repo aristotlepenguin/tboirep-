@@ -14,6 +14,7 @@ local globalRng = RNG()
 
 include("lua/lib/customhealthapi/core.lua")
 include("lua/lib/customhealth.lua")
+include("lua/CEAdd.lua")
 
 local hiddenItemManager = require("lua.lib.hidden_item_manager")
 hiddenItemManager:Init(mod)
@@ -108,6 +109,12 @@ mod.directionToVector = {
 	[Direction.DOWN] = Vector(0, 1),
     [Direction.NO_DIRECTION] = Vector(0, 1)
 }
+
+local function tearsUp(firedelay, val)  --Скорострельность вычисляется через эту формулу
+    local currentTears = 30 / (firedelay + 1)
+    local newTears = currentTears + val
+    return (30 / newTears) - 1
+end
 
 function mod:GetPlayerFromTear(tear)
     for i=1, 2 do
@@ -346,10 +353,10 @@ function mod:updateCache_AllStats(_player, cacheFlag)
 	end
     if cacheFlag == CacheFlag.CACHE_FIREDELAY then
 	    if player:HasCollectible(mod.RepmTypes.COLLECTIBLE_SALAMI) then 
-		    player.MaxFireDelay = player.MaxFireDelay -1
+		    player.MaxFireDelay = tearsUp(player.MaxFireDelay, 1)
 		end
         if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and player:GetName() == "Minusaac" then 
-		    player.MaxFireDelay = player.MaxFireDelay -1
+		    player.MaxFireDelay = tearsUp(player.MaxFireDelay, 1)
 		end
 	end
     if cacheFlag == CacheFlag.CACHE_RANGE then
@@ -1044,15 +1051,6 @@ end
 
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, Holyshell.onHolyshell2, mod.RepmTypes.COLLECTIBLE_UNHOLY_SHELL)
 
-
-
-
-local function tearsUp(firedelay, val)  --Скорострельность вычисляется через эту формулу
-    local currentTears = 30 / (firedelay + 1)
-    local newTears = currentTears + val
-    return math.max((30 / newTears) - 1, -0.99)
-end
-
 function mod:TrinketNewRoom() --Эта функция вызывается после смены комнаты
     for i=0, game:GetNumPlayers()-1 do --Цикл, в котором проходимся по всем игрокам
         local player = Isaac.GetPlayer(i)
@@ -1136,7 +1134,7 @@ function mod:cacheUpdate(player, cacheFlag)
 	if cacheFlag == CacheFlag.CACHE_DAMAGE then
 		if player:HasCollectible(mod.RepmTypes.COLLECTIBLE_LEAKY_BUCKET) then
 			if player.MaxFireDelay >= 7 then
-				player.MaxFireDelay = player.MaxFireDelay - 2
+				player.MaxFireDelay = tearsUp(player.MaxFireDelay, 2)
 			elseif player.MaxFireDelay >= 5 then
 				player.MaxFireDelay = 5
 			end
@@ -1397,7 +1395,7 @@ function mod:updateCache_Banana(_player, cacheFlag)
 	
 	if cacheFlag == CacheFlag.CACHE_FIREDELAY then
 	    if player:HasCollectible(mod.RepmTypes.COLLECTIBLE_BANANA_MILK) then 
-		    player.MaxFireDelay = player.MaxFireDelay +100;
+		    player.MaxFireDelay = tearsUp(player.MaxFireDelay, -100)
 		end
 	end
     if cacheFlag == CacheFlag.CACHE_DAMAGE then
@@ -1716,7 +1714,7 @@ function mod:updateCache_Vacuum(_player, cacheFlag)
     
     if cacheFlag == CacheFlag.CACHE_FIREDELAY then
         if player:HasCollectible(mod.RepmTypes.COLLECTIBLE_VACUUM) then 
-            player.MaxFireDelay = player.MaxFireDelay -0.50;
+            player.MaxFireDelay = tearsUp(player.MaxFireDelay, 0.5)
         end
     end
     if cacheFlag == CacheFlag.CACHE_RANGE then
@@ -2011,7 +2009,7 @@ if cacheFlag == CacheFlag.CACHE_FLYING  then
 		end
 if cacheFlag == CacheFlag.CACHE_FIREDELAY then
 		if player:HasCollectible(mod.RepmTypes.Collectible_DEAL_OF_THE_DEATH) then
-			player.MaxFireDelay = player.MaxFireDelay -2
+			player.MaxFireDelay = tearsUp(player.MaxFireDelay, 2)
 		end
 	end		
 if cacheFlag == CacheFlag.CACHE_SHOTSPEED then
@@ -2054,7 +2052,7 @@ if cacheFlag == CacheFlag.CACHE_DAMAGE then
 	end
 if cacheFlag == CacheFlag.CACHE_FIREDELAY then
 		if player:HasCollectible(mod.RepmTypes.Collectible_SANDWICH) then
-			player.MaxFireDelay = player.MaxFireDelay -0.35
+			player.MaxFireDelay = tearsUp(player.MaxFireDelay, 0.35)
 		end
 	end		
 if cacheFlag == CacheFlag.CACHE_TEARFLAG then
@@ -2186,7 +2184,7 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE,function (_,Player,Cache)
         Player.Damage = Player.Damage + (Data.Bloody_Damage or 0)
     end
     if Cache == CacheFlag.CACHE_FIREDELAY then
-        Player.MaxFireDelay = Player.MaxFireDelay - (Data.Bloody_MaxFireDelay or 0)
+        Player.MaxFireDelay = tearsUp(player.MaxFireDelay, (Data.Bloody_MaxFireDelay or 0))
     end
     if Cache == CacheFlag.CACHE_RANGE then
         Player.TearRange = Player.TearRange + (Data.Bloody_TearRange or 0)
@@ -2375,7 +2373,9 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE,function (_,Player,Cache)
         Player.Damage = Player.Damage + Data.Damage
     end
     if Cache == CacheFlag.CACHE_FIREDELAY then
-        Player.MaxFireDelay = Player.MaxFireDelay - Data.MaxFireDelay
+        local currentTears = 30 / (Player.MaxFireDelay + 1)
+        local newTears = currentTears + Data.MaxFireDelay
+        Player.MaxFireDelay = (30 / newTears) - 1
     end
     if Cache == CacheFlag.CACHE_RANGE then
         Player.TearRange = Player.TearRange + Data.TearRange
