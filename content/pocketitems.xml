@@ -1,4 +1,7 @@
 <pocketitems>
 	<card type="object" name="Minus Shard" description="???" hud="MinusShard" pickup="1011"/>
 	<card type="object" name="Icicle" description="Feels frosty..." hud="Icicle" mimiccharge="1" pickup="63871"/>
+	<card type="special" pickup="9999" hud="HammerCard" name="Hammer Card" description="Rejump your rooms" mimiccharge="6" />
+
+	<pilleffect name="Groovy" class="2+" mimiccharge="12" />
 </pocketitems>
