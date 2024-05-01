@@ -2,6 +2,7 @@ local chestmod = RepMMod
 EEE_CHEST = Isaac.GetEntityVariantByName("EEE Chest")
 PersistentGameData = Isaac.GetPersistentGameData()
 local game = Game()
+local sfx = SFXManager()
 
 RepMMod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(a)
     local playerCount = game:GetNumPlayers()
@@ -153,7 +154,7 @@ RepMMod:AddCallback(ModCallbacks.MC_USE_CARD, function(_, _, player, flags)
 	else
 		print(Dirt)
 		if game:GetLevel():GetRoomByIdx(NewDirt, -1).Data ~= nil then
-			
+			sfx:Play(Isaac.GetSoundIdByName("hammercard"), 1, 5)
 			game:StartRoomTransition(NewDirt, Direction.NO_DIRECTION, RoomTransitionAnim.TELEPORT, player, -1)
 			if player:HasCollectible(451) then
 				if math.random(1,10) <= 2 then
@@ -180,6 +181,7 @@ RepMMod:AddCallback(ModCallbacks.MC_USE_PILL, function(_, _, player, flags)
 		Isaac.Spawn(5, 10, 1, player.Position, Vector.FromAngle(math.random(360)) * 3, nil)
 		Isaac.Spawn(5, 10, 1, player.Position, Vector.FromAngle(math.random(360)) * 3, nil)
 	end
+	Isaac.CreateTimer(function() Immune = false end, 600, 1, true)
 	player:AddHearts(3)
 	player:AnimateHappy()
 end, Isaac.GetPillEffectByName("Groovy"))
