@@ -61,6 +61,7 @@ mod.RepmTypes.COLLECTIBLE_EXECUTIONER_HELMET = Isaac.GetItemIdByName("Executione
 mod.RepmTypes.COLLECTIBLE_ROT = Isaac.GetItemIdByName("Rot")
 mod.RepmTypes.Collectible_BLOODY_NEGATIVE = Isaac.GetItemIdByName("Bloody Negative")
 mod.RepmTypes.Collectible_SIREN_HORNS = Isaac.GetItemIdByName("Siren Horns")
+mod.RepmTypes.Collectible_HOW_TO_DIG = Isaac.GetItemIdByName("How To Dig")
 
 mod.RepmTypes.TRINKET_POCKET_TECHNOLOGY = Isaac.GetTrinketIdByName("Pocket Technology")
 mod.RepmTypes.TRINKET_MICRO_AMPLIFIER = Isaac.GetTrinketIdByName("Micro Amplifier")
@@ -3867,8 +3868,75 @@ function mod:waitFireSiren(player)
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.waitFireSiren)
 
+----------------------------------------------------------
+--HOW TO DIG
+----------------------------------------------------------
+function mod:useHowToDig(collectibletype, rng, player, useflags, slot, vardata)
+    local data = player:GetData()
+    if data.REPM_InDigState == nil then
+        data.REPM_InDigState = game:GetFrameCount()
+        player:UseActiveItem(CollectibleType.COLLECTIBLE_HOW_TO_JUMP)
+    end
+
+    
+end
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.useHowToDig, mod.RepmTypes.Collectible_HOW_TO_DIG)
 
 
+local sinkFrame = nil
+function mod:HowDigUpdate(player)
+    if player:GetData().REPM_InDigState ~= nil then
+       if game:GetFrameCount() ~= sinkFrame and player:GetData().REPM_InDigState + 20 == game:GetFrameCount() then
+            player:GetSprite().Color = Color(1, 1, 1, 0, 1, 1, 1)
+            player:GetSprite():LoadGraphics()
+            player:AddCacheFlags(CacheFlag.CACHE_SPEED)
+            player:AddCacheFlags(CacheFlag.CACHE_FLYING)
+            player:EvaluateItems()
+            sfx:Play(SoundEffect.SOUND_ROCK_CRUMBLE, Options.SFXVolume*2)
+            for i=1, 3 do
+                Isaac.Spawn(1000, 4, 0, game:GetRoom():GetGridPosition(game:GetRoom():GetGridIndex(player.Position)), RandomVector()*math.random()*5, player)
+            end
+       elseif player:GetData().REPM_EscapeDig == true or game:GetFrameCount() > player:GetData().REPM_InDigState + 600 then
+            player:GetData().REPM_EscapeDig = nil
+            player:GetSprite().Color = Color(1, 1, 1, 1, 0, 0, 0)
+            player:GetSprite():LoadGraphics()
+            player:GetData().REPM_InDigState = nil
+            
+            for i=1, 3 do
+                Isaac.Spawn(1000, 4, 0, game:GetRoom():GetGridPosition(game:GetRoom():GetGridIndex(player.Position)), RandomVector()*math.random()*5, player)
+            end
+            sfx:Play(SoundEffect.SOUND_ROCK_CRUMBLE, Options.SFXVolume*2)
+            player:UseActiveItem(CollectibleType.COLLECTIBLE_HOW_TO_JUMP)
+            player:AddCacheFlags(CacheFlag.CACHE_SPEED)
+            player:AddCacheFlags(CacheFlag.CACHE_FLYING)
+            player:EvaluateItems()
+       end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.HowDigUpdate)
+
+
+function mod:HowDigRender(player)
+    if player:GetData().REPM_InDigState ~= nil and player:GetData().REPM_InDigState ~= game:GetFrameCount() and not player:GetData().REPM_EscapeDig and Input.IsActionTriggered(ButtonAction.ACTION_ITEM, player.ControllerIndex) then
+        player:GetData().REPM_EscapeDig = true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, mod.HowDigRender)
+
+
+function mod:digSlowdown(player, cacheFlag)
+    local data = player:GetData()
+    if data.REPM_InDigState and data.REPM_InDigState + 20 <= game:GetFrameCount() then
+        if cacheFlag == CacheFlag.CACHE_SPEED then
+            player.MoveSpeed = player.MoveSpeed * 0.5
+        end
+        if cacheFlag == CacheFlag.CACHE_FLYING then
+            player.CanFly = true
+        end
+    end
+    
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.digSlowdown)
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------

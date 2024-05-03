@@ -39,9 +39,10 @@
 	<passive name="Friendly Rocks" description="I loves my rocks!" gfx="Friendly Rocks.png" quality = "1"/>
 	<passive name="Like" description="Farm for them" gfx="Like.png"/>
 	<active name="Sim's Axe" description="Timber!" gfx="Sim Axe.png" maxcharges="3" achievement= "SimDelirium"/>
-	<active name="Frozen Food" description="HP up + brain freeze" gfx="frozen food.png" cache="damage"/>
+	<passive name="Frozen Food" description="HP up + brain freeze" gfx="frozen food.png" cache="damage"/>
 	<passive id = "425" name="Siren Horns" description="Come hither" gfx="Siren Horns.png"/>
 	<passive name="Angel Spirit" description="Let your angel defend you" gfx="aaa.png"/>
+	<active name="How To Dig" description="Time to dig!" gfx="how to dig.png" maxcharges = "3"/>
 <!-- Trinkets -->
 	<trinket name="Micro Amplifier" description="STOP!" gfx="microamplifier.png" />
 	<trinket name="Burnt Clover" description="The treasury is surprising" gfx="Clover.png" />
