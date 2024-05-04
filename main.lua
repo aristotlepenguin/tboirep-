@@ -3905,15 +3905,38 @@ function mod:HowDigUpdate(player)
             for i=1, 3 do
                 Isaac.Spawn(1000, 4, 0, game:GetRoom():GetGridPosition(game:GetRoom():GetGridIndex(player.Position)), RandomVector()*math.random()*5, player)
             end
-            sfx:Play(SoundEffect.SOUND_ROCK_CRUMBLE, Options.SFXVolume*2)
-            player:UseActiveItem(CollectibleType.COLLECTIBLE_HOW_TO_JUMP)
             player:AddCacheFlags(CacheFlag.CACHE_SPEED)
             player:AddCacheFlags(CacheFlag.CACHE_FLYING)
             player:EvaluateItems()
+            sfx:Play(SoundEffect.SOUND_ROCK_CRUMBLE, Options.SFXVolume*2)
+            player:UseActiveItem(CollectibleType.COLLECTIBLE_HOW_TO_JUMP)
+            
        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.HowDigUpdate)
+
+
+function mod:OnPlayerCollide_Dig(player, collider)
+    print(player:GetData().REPM_InDigState and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount())
+
+    if player:GetData().REPM_InDigState and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
+        return true
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, mod.OnPlayerCollide_Dig)
+
+function mod:OnPlayerDamage_Dig(entity, amount, damageflags, source, countdownframes)
+    local player = entity:ToPlayer()
+    if player == nil then
+        return
+    end
+
+    if player:GetData().REPM_InDigState and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
+        return false
+    end
+end
+mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.OnPlayerDamage_Dig, EntityType.ENTITY_PLAYER)
 
 
 function mod:HowDigRender(player)
