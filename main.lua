@@ -18,6 +18,7 @@ include("lua/CEAdd.lua")
 
 local hiddenItemManager = require("lua.lib.hidden_item_manager")
 hiddenItemManager:Init(mod)
+hiddenItemManager:HideCostumes()
 local familiarRNG = RNG()
 local level
 local sfx = SFXManager()
@@ -87,6 +88,8 @@ local ImprovedCardsAchId = Isaac.GetAchievementIdByName("improved_cards")
 local NumbHeartAchId = Isaac.GetAchievementIdByName("NumbHeart")
 local RotAchId = Isaac.GetAchievementIdByName("RotAch")
 local SimDeliriumId = Isaac.GetAchievementIdByName("SimDelirium")
+
+
 
 function mod.GetMenuSaveData()
     if not mod.MenuData then
@@ -3882,6 +3885,8 @@ function mod:useHowToDig(collectibletype, rng, player, useflags, slot, vardata)
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.useHowToDig, mod.RepmTypes.Collectible_HOW_TO_DIG)
 
+local points = {}
+local lastRoomIndex
 
 local sinkFrame = nil
 function mod:HowDigUpdate(player)
@@ -3890,13 +3895,14 @@ function mod:HowDigUpdate(player)
             player:GetSprite().Color = Color(1, 1, 1, 0, 1, 1, 1)
             player:GetSprite():LoadGraphics()
             player:AddCacheFlags(CacheFlag.CACHE_SPEED)
-            player:AddCacheFlags(CacheFlag.CACHE_FLYING)
             player:EvaluateItems()
+            hiddenItemManager:Add(player, CollectibleType.COLLECTIBLE_LEO)
+            sinkFrame = game:GetFrameCount()
             sfx:Play(SoundEffect.SOUND_ROCK_CRUMBLE, Options.SFXVolume*2)
             for i=1, 3 do
                 Isaac.Spawn(1000, 4, 0, game:GetRoom():GetGridPosition(game:GetRoom():GetGridIndex(player.Position)), RandomVector()*math.random()*5, player)
             end
-       elseif player:GetData().REPM_EscapeDig == true or game:GetFrameCount() > player:GetData().REPM_InDigState + 600 then
+        elseif player:GetData().REPM_EscapeDig == true or game:GetFrameCount() > player:GetData().REPM_InDigState + 600 then
             player:GetData().REPM_EscapeDig = nil
             player:GetSprite().Color = Color(1, 1, 1, 1, 0, 0, 0)
             player:GetSprite():LoadGraphics()
@@ -3906,11 +3912,15 @@ function mod:HowDigUpdate(player)
                 Isaac.Spawn(1000, 4, 0, game:GetRoom():GetGridPosition(game:GetRoom():GetGridIndex(player.Position)), RandomVector()*math.random()*5, player)
             end
             player:AddCacheFlags(CacheFlag.CACHE_SPEED)
-            player:AddCacheFlags(CacheFlag.CACHE_FLYING)
             player:EvaluateItems()
             sfx:Play(SoundEffect.SOUND_ROCK_CRUMBLE, Options.SFXVolume*2)
             player:UseActiveItem(CollectibleType.COLLECTIBLE_HOW_TO_JUMP)
-            
+            hiddenItemManager:Remove(player, CollectibleType.COLLECTIBLE_LEO, hiddenItemManager.kDefaultGroup)
+            if player:HasCollectible(CollectibleType.COLLECTIBLE_CAR_BATTERY) then
+                table.insert(points, {point=player, dmg=player.Damage})
+            end
+        elseif game:GetFrameCount() ~= sinkFrame and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
+            player.FireDelay = 1  
        end
     end
 end
@@ -3918,11 +3928,11 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.HowDigUpdate)
 
 
 function mod:OnPlayerCollide_Dig(player, collider)
-    print(player:GetData().REPM_InDigState and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount())
 
     if player:GetData().REPM_InDigState and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
         return true
     end
+
 end
 mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, mod.OnPlayerCollide_Dig)
 
@@ -3938,6 +3948,18 @@ function mod:OnPlayerDamage_Dig(entity, amount, damageflags, source, countdownfr
 end
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.OnPlayerDamage_Dig, EntityType.ENTITY_PLAYER)
 
+function mod:DoorUpdateDig(door)
+    local entities = Isaac.FindInRadius(door.Position, 30)
+    if not door:IsOpen() and door:CanBlowOpen() then
+        for i, entity in ipairs(entities) do
+            if entity:ToPlayer() ~= nil and player:GetData().REPM_InDigState and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
+                door:TryBlowOpen( false, player)
+                sfx:Play(SoundEffect.SOUND_WOOD_PLANK_BREAK)
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_GRID_ENTITY_DOOR_UPDATE, mod.DoorUpdateDig)
 
 function mod:HowDigRender(player)
     if player:GetData().REPM_InDigState ~= nil and player:GetData().REPM_InDigState ~= game:GetFrameCount() and not player:GetData().REPM_EscapeDig and Input.IsActionTriggered(ButtonAction.ACTION_ITEM, player.ControllerIndex) then
@@ -3953,13 +3975,89 @@ function mod:digSlowdown(player, cacheFlag)
         if cacheFlag == CacheFlag.CACHE_SPEED then
             player.MoveSpeed = player.MoveSpeed * 0.5
         end
-        if cacheFlag == CacheFlag.CACHE_FLYING then
-            player.CanFly = true
-        end
     end
     
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.digSlowdown)
+
+
+
+
+local directions = {
+	Vector(1, 0),
+	Vector(0, 1),
+	Vector(-1, 0),
+	Vector(0, -1),
+}
+
+local function onUpdate(_mod, npc)
+	local ply = Isaac.GetPlayer(0)
+	local ents = Isaac.GetRoomEntities()
+	local level = game:GetLevel()
+
+	if lastRoomIndex ~= level:GetCurrentRoomIndex() then
+		lastRoomIndex = level:GetCurrentRoomIndex()
+		points = {}
+	end
+
+	local room = game:GetRoom()
+	local width = room:GetGridWidth()
+	local height = room:GetGridHeight()
+
+	local dmgTiles = {}
+	for k, v in pairs(points) do
+		local point = v.point
+
+		if not v.i then
+			v.i = 3
+			v.pos = point.Position
+		end
+
+		if v.i then
+			v.i = v.i + 1
+			local i = v.i
+			local flag = false
+			local index = room:GetGridIndex(v.pos)
+			local gridpos = Vector(index%width, math.floor(index/width))
+
+			if i%4 == 0 then
+				for _, dir in pairs(directions) do
+					--local index = index + dir.X*i/4 + dir.Y*width*i/4
+					local gridpos = gridpos + dir*i/4
+					local index = gridpos.X+gridpos.Y*width
+					if gridpos.X>0 and gridpos.X<width and gridpos.Y>0 and gridpos.Y<height then
+						local pos2 = room:GetGridPosition(index, 1)
+
+						if room:IsPositionInRoom(pos2, 0) then
+							local rock = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.ROCK_EXPLOSION, 0, pos2, Vector(0, 0), point)
+							room:DestroyGrid(index)
+							if not dmgTiles[index] or dmgTiles[index].dmg<v.dmg then
+								dmgTiles[index] = v
+							end
+							flag = true
+						end
+					end
+				end
+
+				if not flag then
+					points[k] = nil
+				end
+			end
+		end
+	end
+
+	for k, v in pairs(ents) do
+		local dat = dmgTiles[room:GetGridIndex(v.Position)]
+		if dat and (v:IsVulnerableEnemy()) then
+			v:TakeDamage((v.Type==1 and 0.5 or dat.dmg*5+ply.Damage*2),
+				DamageFlag.DAMAGE_EXPLOSION,
+				EntityRef(dat.point),
+				2)
+		end
+	end
+end
+
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, onUpdate)
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------
