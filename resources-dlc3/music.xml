@@ -103,7 +103,7 @@
 	<track id="102" name="Void" path="Void.ogg" loop="true" />
 	<track id="103" name="Boss (Void)" path="Fight Ogg/Delirium Fight.ogg" loop="true" />
 <!-- REPENTANCE BEGIN -->
-	<track id="104" name="Downpour" path="Repentance/Downpour.ogg" layer="Repentance/Downpour Heavy.ogg" loop="true" layermode="2" layerfadespeed="0.005" />
+	<track id="104" name="Downpour" path="Repentance/Downpour loop.ogg" intro="Repentance/Downpour intro.ogg" layerintro="Repentance/Downpour layer intro.ogg" layer="Repentance/Downpour layer.ogg" loop="true" layermode="2" layerfadespeed="0.05" />
 	<track id="105" name="Mines" path="Repentance/Mines.ogg" layer="Repentance/Mines Heavy.ogg" loop="true" layermode="2" mul="1.15" layermul="1.35" layerfadespeed="0.005" />
 	<track id="106" name="Mausoleum" path="Repentance/Mausoleum.ogg" layer="Repentance/Mausoleum Heavy.ogg" loop="true" layermode="2" layermul="1.2" layerfadespeed="0.005" />
 	<track id="107" name="Corpse" path="Repentance/Corpse.ogg" layer="Repentance/Corpse Layer.ogg" loop="true" layerfadespeed="0.005" />
