@@ -89,7 +89,7 @@
 		<Item Name = "Book of necromancer" Weight = "2" DecreaseBy = "1" RemoveOn = "0.1" />
 		<Item Name = "Executioner helmet" Weight="3" DecreaseBy="1" RemoveOn="0.1" />
 	    </Pool>
-		<Pool Name="angle">
+		<Pool Name="angel">
 		<Item Name="Holy shell" Weight="2" DecreaseBy="1" RemoveOn="0.1"/>
 		<Item Name="Curious heart" Weight="1" DecreaseBy="1" RemoveOn="0.1"/>
 		<Item Name="Holy master key" Weight="2" DecreaseBy="1" RemoveOn="0.1"/>
