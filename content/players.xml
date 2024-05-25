@@ -11,9 +11,15 @@
 	nameimage="sim_b.png" bigportrait="sim_b_big.png" portrait="sim_b_big.png" skin="character_sim_b.png" skinColor="1" birthright="Crack their bones" 
 	bSkinParent="Sim"/>
 	<player name="Frosty" skin="character_frosty.png" hp="0" armor = "1" bombs="2" 
-          nameimage="minus.png" 
+          nameimage="frost.png" 
           portrait="playerportrait_frosty.png" 
           bigportrait="playerportrait_frosty.png" skinColor="-1"
 		  birthright="It's getting drafty!" 
 		  achievement="Frosty" />
+    <player name="Tainted Frosty" skin="character_frosty_b.png" hp="0" armor = "1" bombs="2" 
+          nameimage="frost.png" 
+          portrait="playerportrait_frosty_b.png" 
+          bigportrait="playerportrait_frosty_b.png" skinColor="-1"
+		  birthright="" healthtype = "1"
+		  achievement="Frosty_B" bSkinParent="Frosty"/>
 </players>

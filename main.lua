@@ -63,6 +63,8 @@ mod.RepmTypes.COLLECTIBLE_ROT = Isaac.GetItemIdByName("Rot")
 mod.RepmTypes.Collectible_BLOODY_NEGATIVE = Isaac.GetItemIdByName("Bloody Negative")
 mod.RepmTypes.Collectible_SIREN_HORNS = Isaac.GetItemIdByName("Siren Horns")
 mod.RepmTypes.Collectible_HOW_TO_DIG = Isaac.GetItemIdByName("How To Dig")
+mod.RepmTypes.Collectible_BATTERED_LIGHTER = Isaac.GetItemIdByName("Battered Lighter")
+mod.RepmTypes.Collectible_HOLY_LIGHTER = Isaac.GetItemIdByName("Holy Lighter")
 
 mod.RepmTypes.TRINKET_POCKET_TECHNOLOGY = Isaac.GetTrinketIdByName("Pocket Technology")
 mod.RepmTypes.TRINKET_MICRO_AMPLIFIER = Isaac.GetTrinketIdByName("Micro Amplifier")
@@ -71,6 +73,7 @@ mod.RepmTypes.TRINKET_BURNED_CLOVER = Isaac.GetTrinketIdByName("Burnt Clover")
 mod.RepmTypes.TRINKET_MORE_OPTIONS = Isaac.GetTrinketIdByName("MORE OPTIONS")
 mod.RepmTypes.TRINKET_HAMMER = Isaac.GetTrinketIdByName("Hammer")
 
+mod.RepmTypes.CHARACTER_FROSTY_B = Isaac.GetPlayerTypeByName("Tainted Frosty", true)
 mod.RepmTypes.CHALLENGE_LOCUST_KING = Isaac.GetChallengeIdByName("Locust King")
 
 mod.RepmTypes.EFFECT_FROSTY_RIFT = Isaac.GetEntityVariantByName("Frosty Rift")
@@ -2619,15 +2622,26 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.loadData)
 
 local frostType = Isaac.GetPlayerTypeByName("Frosty", false)
 
+function mod:checkTFrostyConditions(player)
+    local fires = Isaac.FindByType(33, 2, 0)
+    if player:GetPlayerType() ~= mod.RepmTypes.CHARACTER_FROSTY_B then
+        return 0
+    elseif #fires > 0 then
+        return -1
+    else
+        return 1
+    end
+end
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, function()
     mod:AnyPlayerDo(function(player)
-        if player:GetPlayerType() == frostType then
+        if player:GetPlayerType() == frostType or player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
             local pdata = mod:repmGetPData(player)
             pdata.FrostDamageDebuff = 0
             player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+            player:AddCacheFlags(CacheFlag.CACHE_SPEED)
             player:EvaluateItems()
-            if player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and not game:GetRoom():IsClear() then
+            if player:GetPlayerType() == frostType and player:HasCollectible(CollectibleType.COLLECTIBLE_BIRTHRIGHT) and not game:GetRoom():IsClear() then
                 local position = game:GetRoom():FindFreePickupSpawnPosition(game:GetRoom():GetRandomPosition(3))
                 local rift = Isaac.Spawn(1000, mod.RepmTypes.EFFECT_FROSTY_RIFT, 1, position, Vector.Zero, nil)
                 rift.SortingLayer = SortingLayer.SORTING_BACKGROUND
@@ -2642,6 +2656,7 @@ local percentFreezePerSecond = 42 --chance to freeze every second
 local frostRNG = RNG()
 local frameBetweenDebuffs = 150 -- 30 frames per second
 local damageDownPerDebuff = 0.40
+local speedDownPerDebuff = 0.10
 local lastFrame = 0
 local minFrameFreeze = 30 -- 1 second
 local maxFrameFreeze = 900 -- 30 seconds
@@ -2651,7 +2666,7 @@ blueColor:SetColorize(1, 1, 3, 1)
 
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
     local pdata = mod:repmGetPData(player)
-    if player:GetPlayerType() == frostType then
+    if player:GetPlayerType() == frostType or mod:checkTFrostyConditions(player) == 1 then
         local frame = game:GetFrameCount()
         if frame % 30 == 0  and frame ~= lastFrame then
             lastFrame = frame
@@ -2663,6 +2678,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
                     pdata.FrostDamageDebuff = 0
                 end
                 player:AddCacheFlags(CacheFlag.CACHE_DAMAGE)
+                player:AddCacheFlags(CacheFlag.CACHE_SPEED)
                 player:EvaluateItems()
             end
         end
@@ -2699,6 +2715,16 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function(_)
     mod:AnyPlayerDo(function(player)
         if player:GetPlayerType() == frostType or saveTable.Repm_Iced then
             hasIt = true
+        end
+
+        local pdata = mod:repmGetPData(player)
+        if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B and pdata.TFrosty_Unlit_Count == 5 then
+            hasIt = true
+            local framesToFreeze = pdata.TFrosty_FreezePoint - pdata.TFrosty_StartPoint
+            local progress = game:GetFrameCount() - pdata.TFrosty_StartPoint
+            local progressAmt = progress/framesToFreeze
+            local color = Color.Lerp(Color.Default, blueColor, progressAmt)
+            player:GetSprite().Color = color
         end
     end)
     if hasIt and game:GetRoom():GetAliveEnemiesCount() >= 1 then
@@ -2738,6 +2764,15 @@ mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, function(_, player, cacheflag)
         end
         player.Damage = player.Damage - (damageDebuff * damageDownPerDebuff)
     end
+    if cacheflag == CacheFlag.CACHE_SPEED then
+        if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
+            local speedDebuff = (pdata.FrostDamageDebuff or 0)
+            if game:IsGreedMode() then
+                speedDebuff = speedDebuff / 2
+            end
+            player.MoveSpeed = player.MoveSpeed - (speedDebuff * speedDownPerDebuff)
+        end
+    end
 end)
 
 mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
@@ -2753,6 +2788,19 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, function(_, shaderName)
                 local position = Isaac.WorldToScreen(npc.Position+npc:GetNullOffset("OverlayEffect"))
                 npc:GetData().RepM_Frosty_Sprite:Render(position)
                 npc:GetData().RepM_Frosty_Sprite:Update()
+            end
+            if npc:ToPlayer() and npc:ToPlayer():GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
+                local pdata = mod:repmGetPData(npc:ToPlayer())
+                if pdata.TFrosty_Unlit_Count == 5 and not game:IsPaused() then
+                    if not npc:GetData().RepM_Frosty_Sprite then
+                        npc:GetData().RepM_Frosty_Sprite = Sprite()
+                        npc:GetData().RepM_Frosty_Sprite:Load("gfx/chill_status.anm2",true)
+                        npc:GetData().RepM_Frosty_Sprite:Play("Idle")
+                    end
+                    local position = Isaac.WorldToScreen(npc.Position+Vector(0, -50))
+                    npc:GetData().RepM_Frosty_Sprite:Render(position)
+                    npc:GetData().RepM_Frosty_Sprite:Update()
+                end
             end
         end
     end
@@ -3109,7 +3157,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.disableCreepRoom)
 function mod:onGreedUpdate_RepM()
     if game:IsGreedMode() and saveTable.REPM_GreedWave ~= game:GetLevel().GreedModeWave then
         mod:AnyPlayerDo(function(player)
-            if player:GetPlayerType() == frostType then
+            if player:GetPlayerType() == frostType or player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
                 local pdata = repmGetPData(player)
                 pdata.FrostDamageDebuff = (pdata.FrostDamageDebuff or 0) + 1
             end
@@ -4058,6 +4106,130 @@ local function onUpdate(_mod, npc)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, onUpdate)
+-----------------------------------------------------------
+--TAINTED FROSTY
+-----------------------------------------------------------
+
+function mod:onTaintedFrostyStart(player)
+    if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
+        player:SetPocketActiveItem(mod.RepmTypes.Collectible_BATTERED_LIGHTER, ActiveSlot.SLOT_POCKET, false)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.onTaintedFrostyStart)
+
+function mod:baseFrostyCache(player, cacheFlag)
+    if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
+        if cacheFlag == CacheFlag.CACHE_LUCK then
+            player.Luck = player.Luck - 3
+        end
+        if cacheFlag == CacheFlag.CACHE_SHOTSPEED then
+            player.ShotSpeed = player.ShotSpeed + 0.15
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.baseFrostyCache)
+
+function mod:onEnterRoomTFrost()
+    local room = game:GetRoom()
+    mod:AnyPlayerDo(function(player)
+        local pdata = mod:repmGetPData(player)
+        if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B and not room:IsClear() then
+            pdata.TFrosty_Lit = false
+            local destPos = room:FindFreePickupSpawnPosition(room:GetRandomPosition(10))
+            local fire = Isaac.Spawn(33, 2, 0, destPos, Vector(0, 0), nil)
+            fire:Die()
+            sfx:Stop(SoundEffect.SOUND_FIREDEATH_HISS)
+        end
+    end)
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.onEnterRoomTFrost)
+
+function mod:useBatteredLighter(collectibletype, rng, player, useflags, slot, vardata)
+    local fireplaces = Isaac.FindInRadius(player.Position, 100)
+    local fireplacesTotal = Isaac.FindByType(33)
+    print(game:GetFrameCount())
+    
+    for i, place in ipairs(fireplacesTotal) do
+        if place.Position:Distance(player.Position) < 60 then
+            if rng:RandomInt(100) <= 50 then
+                local pos = place.Position
+                place:Remove()
+                Isaac.Spawn(33, 2, 0, pos, Vector.Zero, nil)
+                local pdata = mod:repmGetPData(player)
+                pdata.TFrosty_Lit = true
+            end
+            break
+        end
+    end
+
+    return {
+        Discharge = true,
+        Remove = false,
+        ShowAnim = true
+    }
+end
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.useBatteredLighter, mod.RepmTypes.Collectible_BATTERED_LIGHTER)
+
+function mod:tFrostyClearRoom()
+    mod:AnyPlayerDo(function(player)
+        local pdata = mod:repmGetPData(player)
+        if pdata.TFrosty_Lit == false and player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
+            pdata.TFrosty_Unlit_Count = math.min((pdata.TFrosty_Unlit_Count or 0) + 1, 5)
+            if pdata.TFrosty_Unlit_Count == 4 then
+                pdata.TFrosty_Unlit_Count = 5
+                pdata.TFrosty_StartPoint = game:GetFrameCount()
+                pdata.TFrosty_FreezePoint = game:GetFrameCount() + 7200
+                player:AnimateSad()
+                player:SetPocketActiveItem(mod.RepmTypes.Collectible_HOLY_LIGHTER, ActiveSlot.SLOT_POCKET, false)
+                player:DischargeActiveItem(ActiveSlot.SLOT_POCKET)
+            end
+        end
+        if player:HasCollectible(mod.RepmTypes.Collectible_HOLY_LIGHTER) then
+            local rng = player:GetCollectibleRNG(mod.RepmTypes.Collectible_HOLY_LIGHTER)
+            if rng:RandomInt(100) < 15 then
+                player:SetActiveCharge(math.min(12, player:GetActiveCharge(ActiveSlot.SLOT_POCKET)+1), ActiveSlot.SLOT_POCKET)
+                sfx:Play(SoundEffect.SOUND_BATTERYCHARGE)
+            end
+        end
+    end)
+end
+mod:AddCallback(ModCallbacks.MC_PRE_SPAWN_CLEAN_AWARD, mod.tFrostyClearRoom)
+
+function mod:onTFrostyUpdate(player)
+    if player:GetPlayerType() ~= mod.RepmTypes.CHARACTER_FROSTY_B then
+        return
+    end
+
+    local pdata = mod:repmGetPData(player)
+    if  pdata.TFrosty_FreezePoint and pdata.TFrosty_FreezePoint < game:GetFrameCount() then
+        player:TakeDamage(99, 0, EntityRef(player), 2)
+        sfx:Play(SoundEffect.SOUND_FREEZE)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.onTFrostyUpdate)
+
+function mod:tfrosty_OnNewLevel()
+    if player and player:HasCollectible(mod.RepmTypes.Collectible_HOLY_LIGHTER) then
+        local rng = player:GetCollectibleRNG(mod.RepmTypes.Collectible_HOLY_LIGHTER)
+        player:SetActiveCharge(math.min(12, player:GetActiveCharge(ActiveSlot.SLOT_POCKET)+4+rng:RandomInt(3)), ActiveSlot.SLOT_POCKET)
+        sfx:Play(SoundEffect.SOUND_BATTERYCHARGE)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.tfrosty_OnNewLevel)
+
+function mod:useHolyLighter(collectibletype, rng, player, useflags, slot, vardata)
+    player:SetPocketActiveItem(mod.RepmTypes.Collectible_BATTERED_LIGHTER, ActiveSlot.SLOT_POCKET, false)
+    local pdata = mod:repmGetPData(player)
+    pdata.TFrosty_FreezePoint = nil
+    pdata.TFrosty_StartPoint = nil
+    pdata.TFrosty_Unlit_Count = 0
+    return {
+        Discharge = true,
+        Remove = false,
+        ShowAnim = true
+    }
+end
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.useHolyLighter, mod.RepmTypes.Collectible_HOLY_LIGHTER)
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------

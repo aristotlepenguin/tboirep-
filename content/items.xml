@@ -43,6 +43,8 @@
 	<passive id = "425" name="Siren Horns" description="Come hither" gfx="Siren Horns.png"/>
 	<passive name="Angel Spirit" description="Let your angel defend you" gfx="aaa.png"/>
 	<active name="How To Dig" description="Time to dig!" gfx="how to dig.png" maxcharges = "3"/>
+	<active name="Battered Lighter" description="Running on fumes" gfx="battered lighter.png" maxcharges = "1"/>
+	<active name="Holy Lighter" description="Baptism by fire" gfx="holy lighter.png" maxcharges = "12" chargetype = "special"/>
 <!-- Trinkets -->
 	<trinket name="Micro Amplifier" description="STOP!" gfx="microamplifier.png" />
 	<trinket name="Burnt Clover" description="The treasury is surprising" gfx="Clover.png" />

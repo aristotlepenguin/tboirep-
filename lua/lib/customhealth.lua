@@ -126,14 +126,26 @@ mod:AddCallback(ModCallbacks.MC_POST_PICKUP_UPDATE, function(_, pickup)
         -- and I don't even know whom to blame for that
         and pickup.FrameCount == 1
     then
+        local isTaintFrost = false
+        mod:AnyPlayerDo(function(player)
+            if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
+                isTaintFrost = true
+            end
+        end)
         rng:SetSeed(pickup.InitSeed + Random(), 1)
         local roll = rng:RandomFloat() * 1000
         local subtype = pickup.SubType
         local baseChance
         if subtype == HeartSubType.HEART_SOUL and Isaac.GetPersistentGameData():Unlocked(FrozenHeartsAchId) then
             baseChance = 200
-            if roll < baseChance then 
-                taintedMorph(pickup, mod.HEART_ICE) end
+            if roll < baseChance then
+                taintedMorph(pickup, mod.HEART_ICE)
+            end
+        elseif (subtype == HeartSubType.HEART_SOUL or subtype == HeartSubType.HEART_FULL or subtype == HeartSubType.HEART_DOUBLEPACK or subtype == HeartSubType.HEART_SCARED or subtype == HeartSubType.HEART_HALF) and Isaac.GetPersistentGameData():Unlocked(FrozenHeartsAchId) and isTaintFrost then
+            baseChance = 200
+            if roll < baseChance or subtype == HeartSubType.HEART_SOUL then
+                taintedMorph(pickup, mod.HEART_ICE)
+            end
         end
     end
 end, PickupVariant.PICKUP_HEART)
@@ -267,7 +279,10 @@ mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_COLLISION, function(_, pickup, collid
         if CustomHealthAPI.Library.CanPickKey(collider, HeartKey[pickup.SubType]) then
             CustomHealthAPI.Library.AddHealth(collider, HeartKey[pickup.SubType], 2, true)
             sfx:Play(HeartPickupSound[pickup.SubType], 1, 0, false, 1.0)
-
+            if collider:ToPlayer():HasCollectible(mod.RepmTypes.Collectible_HOLY_LIGHTER) then
+                collider:ToPlayer():SetActiveCharge(math.min(12, collider:ToPlayer():GetActiveCharge(ActiveSlot.SLOT_POCKET)+2), ActiveSlot.SLOT_POCKET)
+                sfx:Play(SoundEffect.SOUND_BATTERYCHARGE)
+            end
         else
             return pickup:IsShopItem()
         end
@@ -328,6 +343,10 @@ function mod:onFrostyInit(player)
         if Isaac.GetPersistentGameData():Unlocked(DeathCardAchId) then
             player:AddCard(Card.CARD_DEATH)
         end
+    end
+    if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
+        player:AddSoulHearts(-1)
+        CustomHealthAPI.Library.AddHealth(player, HeartKey[mod.HEART_ICE], 8, true)
     end
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.onFrostyInit)
