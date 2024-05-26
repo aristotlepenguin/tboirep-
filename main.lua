@@ -91,6 +91,7 @@ local ImprovedCardsAchId = Isaac.GetAchievementIdByName("improved_cards")
 local NumbHeartAchId = Isaac.GetAchievementIdByName("NumbHeart")
 local RotAchId = Isaac.GetAchievementIdByName("RotAch")
 local SimDeliriumId = Isaac.GetAchievementIdByName("SimDelirium")
+local TFrostyUnlockAch = Isaac.GetAchievementIdByName("Frosty_B")
 
 
 
@@ -4000,7 +4001,7 @@ function mod:DoorUpdateDig(door)
     local entities = Isaac.FindInRadius(door.Position, 30)
     if not door:IsOpen() and door:CanBlowOpen() then
         for i, entity in ipairs(entities) do
-            if entity:ToPlayer() ~= nil and player:GetData().REPM_InDigState and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
+            if entity and entity:ToPlayer() ~= nil and player:GetData().REPM_InDigState and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
                 door:TryBlowOpen( false, player)
                 sfx:Play(SoundEffect.SOUND_WOOD_PLANK_BREAK)
             end
@@ -4125,6 +4126,9 @@ function mod:baseFrostyCache(player, cacheFlag)
         if cacheFlag == CacheFlag.CACHE_SHOTSPEED then
             player.ShotSpeed = player.ShotSpeed + 0.15
         end
+        if cacheFlag == CacheFlag.CACHE_TEARFLAG then
+            player.TearFlags = player.TearFlags | TearFlags.TEAR_ICE
+        end
     end
 end
 mod:AddCallback(ModCallbacks.MC_EVALUATE_CACHE, mod.baseFrostyCache)
@@ -4136,9 +4140,11 @@ function mod:onEnterRoomTFrost()
         if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B and not room:IsClear() then
             pdata.TFrosty_Lit = false
             local destPos = room:FindFreePickupSpawnPosition(room:GetRandomPosition(10))
-            local fire = Isaac.Spawn(33, 2, 0, destPos, Vector(0, 0), nil)
+            local fire = Isaac.Spawn(33, 1, 0, destPos, Vector(0, 0), nil)
             fire:Die()
             sfx:Stop(SoundEffect.SOUND_FIREDEATH_HISS)
+            saveTable.BlizzFade = game:GetFrameCount() + 125
+            sfx:Play(mod.RepmTypes.SFX_WIND)
         end
     end)
 end
@@ -4147,8 +4153,8 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.onEnterRoomTFrost)
 function mod:useBatteredLighter(collectibletype, rng, player, useflags, slot, vardata)
     local fireplaces = Isaac.FindInRadius(player.Position, 100)
     local fireplacesTotal = Isaac.FindByType(33)
-    print(game:GetFrameCount())
-    
+
+    sfx:Play(SoundEffect.SOUND_MEAT_JUMPS)
     for i, place in ipairs(fireplacesTotal) do
         if place.Position:Distance(player.Position) < 60 then
             if rng:RandomInt(100) <= 50 then
@@ -4157,6 +4163,7 @@ function mod:useBatteredLighter(collectibletype, rng, player, useflags, slot, va
                 Isaac.Spawn(33, 2, 0, pos, Vector.Zero, nil)
                 local pdata = mod:repmGetPData(player)
                 pdata.TFrosty_Lit = true
+                sfx:Play(SoundEffect.SOUND_CANDLE_LIGHT)
             end
             break
         end
@@ -4220,6 +4227,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.tfrosty_OnNewLevel)
 function mod:useHolyLighter(collectibletype, rng, player, useflags, slot, vardata)
     player:SetPocketActiveItem(mod.RepmTypes.Collectible_BATTERED_LIGHTER, ActiveSlot.SLOT_POCKET, false)
     local pdata = mod:repmGetPData(player)
+    sfx:Play(SoundEffect.SOUND_CANDLE_LIGHT)
     pdata.TFrosty_FreezePoint = nil
     pdata.TFrosty_StartPoint = nil
     pdata.TFrosty_Unlit_Count = 0
@@ -4230,6 +4238,54 @@ function mod:useHolyLighter(collectibletype, rng, player, useflags, slot, vardat
     }
 end
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.useHolyLighter, mod.RepmTypes.Collectible_HOLY_LIGHTER)
+
+function mod:OnRoomEntryTFrosty()
+    local hasIt = false
+    mod:AnyPlayerDo(function(player)
+        if player:GetPlayerType() == frostType then
+            hasIt = true
+        end
+    end)
+
+    if hasIt and game:GetLevel():GetStage() == 13 then
+        local roomdesc = game:GetLevel():GetRoomByIdx(game:GetLevel():GetCurrentRoomIndex())
+        if roomdesc and roomdesc.Flags and (roomdesc.Flags & RoomDescriptor.FLAG_RED_ROOM == RoomDescriptor.FLAG_RED_ROOM) and not Isaac.GetPersistentGameData():Unlocked(TFrostyUnlockAch) then
+            if game:GetRoom():IsFirstVisit() then
+                local items = Isaac.FindByType(5, 100)
+                for i, item in ipairs(items) do
+                    item:Remove()
+                end
+                Isaac.Spawn(6, 14, 0, game:GetRoom():GetCenterPos(), Vector.Zero, nil)
+
+            end
+    
+            local frosties = Isaac.FindByType(6, 14)
+            for i, dude in ipairs(frosties) do
+                dude:GetSprite():ReplaceSpritesheet(0, "gfx/characters/costumes/character_frosty_b.png")
+                dude:GetSprite():LoadGraphics()
+            end
+        end
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.OnRoomEntryTFrosty)
+
+function mod:onCollisionSecret_Tainted(player, collider, low)
+    if collider.Type == 6 and collider.Variant == 14 and game:GetLevel():GetStage() == 13 then
+        Isaac.GetPersistentGameData():TryUnlock(TFrostyUnlockAch)
+    end
+end
+mod:AddCallback(ModCallbacks.MC_PRE_PLAYER_COLLISION, mod.onCollisionSecret_Tainted)
+
+function mod:OnTearLaunchTFrosty(tear)
+    local player = mod:GetPlayerFromTear(tear)
+    if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B and tear.Variant == 0 then
+        tear:ChangeVariant(1)
+        --tear:GetSprite():LoadGraphics()
+    end
+end
+mod:AddCallback(ModCallbacks.MC_POST_FIRE_TEAR, mod.OnTearLaunchTFrosty)
+
+
 
 --mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onShaderParams) 
 ----------------------------------------------------------
