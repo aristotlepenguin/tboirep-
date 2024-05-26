@@ -11,4 +11,7 @@
 	<sound name="siren_sound">
 		<sample weight="1" path="sirenhorns.wav" />
 	</sound>
+	<sound name="lighter_sound">
+		<sample weight="1" path="lighter.wav" />
+	</sound>
 </sounds>

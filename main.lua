@@ -83,6 +83,7 @@ mod.RepmTypes.SIREN_COSTUME = Isaac.GetCostumeIdByPath("gfx/characters/tantrum_f
 mod.RepmTypes.SFX_WIND = Isaac.GetSoundIdByName("blizz_sound")
 mod.RepmTypes.SFX_LIGHTNING = Isaac.GetSoundIdByName("Thunder")
 mod.RepmTypes.SFX_SIREN = Isaac.GetSoundIdByName("siren_sound")
+mod.RepmTypes.SFX_LIGHTER = Isaac.GetSoundIdByName("lighter_sound")
 
 local FrostyAchId = Isaac.GetAchievementIdByName("Frosty")
 local DeathCardAchId = Isaac.GetAchievementIdByName("FrostySatan")
@@ -4155,7 +4156,7 @@ function mod:useBatteredLighter(collectibletype, rng, player, useflags, slot, va
     local fireplaces = Isaac.FindInRadius(player.Position, 100)
     local fireplacesTotal = Isaac.FindByType(33)
 
-    sfx:Play(SoundEffect.SOUND_MEAT_JUMPS)
+    sfx:Play(mod.RepmTypes.SFX_LIGHTER)
     for i, place in ipairs(fireplacesTotal) do
         if place.Position:Distance(player.Position) < 60 then
             if rng:RandomInt(100) <= 50 then
@@ -4228,6 +4229,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.tfrosty_OnNewLevel)
 function mod:useHolyLighter(collectibletype, rng, player, useflags, slot, vardata)
     player:SetPocketActiveItem(mod.RepmTypes.Collectible_BATTERED_LIGHTER, ActiveSlot.SLOT_POCKET, false)
     local pdata = mod:repmGetPData(player)
+    sfx:Play(mod.RepmTypes.SFX_LIGHTER)
     sfx:Play(SoundEffect.SOUND_CANDLE_LIGHT)
     pdata.TFrosty_FreezePoint = nil
     pdata.TFrosty_StartPoint = nil
