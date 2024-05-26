@@ -4011,7 +4011,7 @@ end
 mod:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, mod.OnPlayerDamage_Dig, EntityType.ENTITY_PLAYER)
 
 function mod:DoorUpdateDig(door)
-    local entities = Isaac.FindInRadius(door.Position, 30)
+    local entities = Isaac.FindInRadius(door.Position, 35)
     if not door:IsOpen() and door:CanBlowOpen() then
         for i, entity in ipairs(entities) do
             if entity and entity:ToPlayer() ~= nil and entity:ToPlayer():GetData().REPM_InDigState and entity:ToPlayer():GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
