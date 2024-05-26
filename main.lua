@@ -3970,7 +3970,19 @@ function mod:HowDigUpdate(player)
                 table.insert(points, {point=player, dmg=player.Damage})
             end
         elseif game:GetFrameCount() ~= sinkFrame and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
-            player.FireDelay = 1  
+            player.FireDelay = 1
+            if game:GetFrameCount() % 4 == 0 then
+                local rock = Isaac.Spawn(EntityType.ENTITY_EFFECT, EffectVariant.ROCK_EXPLOSION, 0, player.Position, Vector(0, 0), point)
+                local entsRad = Isaac.FindInRadius(player.Position, 30)
+                for i, ent in ipairs(entsRad) do
+                    if ent:IsVulnerableEnemy() then
+                        ent:TakeDamage(player.Damage*2,
+                        DamageFlag.DAMAGE_EXPLOSION,
+                        EntityRef(player),
+                        2)
+                    end
+                end
+            end
        end
     end
 end
