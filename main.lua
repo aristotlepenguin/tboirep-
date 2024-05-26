@@ -4001,8 +4001,8 @@ function mod:DoorUpdateDig(door)
     local entities = Isaac.FindInRadius(door.Position, 30)
     if not door:IsOpen() and door:CanBlowOpen() then
         for i, entity in ipairs(entities) do
-            if entity and entity:ToPlayer() ~= nil and player:GetData().REPM_InDigState and player:GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
-                door:TryBlowOpen( false, player)
+            if entity and entity:ToPlayer() ~= nil and entity:ToPlayer():GetData().REPM_InDigState and entity:ToPlayer():GetData().REPM_InDigState + 20 <= game:GetFrameCount() then
+                door:TryBlowOpen( false, entity:ToPlayer())
                 sfx:Play(SoundEffect.SOUND_WOOD_PLANK_BREAK)
             end
         end
@@ -4120,13 +4120,14 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.onTaintedFrostyStart)
 
 function mod:baseFrostyCache(player, cacheFlag)
     if player:GetPlayerType() == mod.RepmTypes.CHARACTER_FROSTY_B then
+        local pdata = mod:repmGetPData(player)
         if cacheFlag == CacheFlag.CACHE_LUCK then
             player.Luck = player.Luck - 3
         end
         if cacheFlag == CacheFlag.CACHE_SHOTSPEED then
             player.ShotSpeed = player.ShotSpeed + 0.15
         end
-        if cacheFlag == CacheFlag.CACHE_TEARFLAG then
+        if cacheFlag == CacheFlag.CACHE_TEARFLAG and pdata.TFrosty_Unlit_Count == 5 then
             player.TearFlags = player.TearFlags | TearFlags.TEAR_ICE
         end
     end
