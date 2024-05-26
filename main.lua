@@ -4159,7 +4159,7 @@ function mod:useBatteredLighter(collectibletype, rng, player, useflags, slot, va
     sfx:Play(mod.RepmTypes.SFX_LIGHTER)
     for i, place in ipairs(fireplacesTotal) do
         if place.Position:Distance(player.Position) < 60 then
-            if rng:RandomInt(100) <= 50 then
+            if rng:RandomInt(100) <= 75 then
                 local pos = place.Position
                 place:Remove()
                 Isaac.Spawn(33, 2, 0, pos, Vector.Zero, nil)
